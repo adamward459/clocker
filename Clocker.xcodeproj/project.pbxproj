@@ -1,0 +1,485 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 71;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00100010000000000000001 /* ClockerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000001 /* ClockerApp.swift */; };
+		A00100010000000000000002 /* DailyRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000002 /* DailyRecord.swift */; };
+		A00100010000000000000003 /* RuntimeCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000003 /* RuntimeCache.swift */; };
+		A00100010000000000000004 /* SyncState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000004 /* SyncState.swift */; };
+		A00100010000000000000005 /* DateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000005 /* DateKey.swift */; };
+		A00100010000000000000006 /* DurationFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000006 /* DurationFormatter.swift */; };
+		A00100010000000000000007 /* JSONFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000007 /* JSONFileStore.swift */; };
+		A00100010000000000000008 /* LocalCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000008 /* LocalCacheStore.swift */; };
+		A00100010000000000000009 /* DailyRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000009 /* DailyRecordStore.swift */; };
+		A0010001000000000000000A /* RecordRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020001000000000000000A /* RecordRepository.swift */; };
+		A0010001000000000000000B /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020001000000000000000B /* LaunchAtLoginManager.swift */; };
+		A0010001000000000000000C /* ClockStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020001000000000000000C /* ClockStore.swift */; };
+		A0010001000000000000000D /* SyncStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020001000000000000000D /* SyncStatusView.swift */; };
+		A0010001000000000000000E /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020001000000000000000E /* MenuBarView.swift */; };
+		A0010001000000000000000F /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020001000000000000000F /* HistoryView.swift */; };
+		A00100010000000000000010 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000010 /* SettingsView.swift */; };
+		A00100010000000000000011 /* DurationFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000011 /* DurationFormatterTests.swift */; };
+		A00100010000000000000012 /* ClockStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000012 /* ClockStoreTests.swift */; };
+		A00100010000000000000013 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A00200010000000000000015 /* XCTest.framework */; };
+		A00100010000000000000014 /* ExternalFolderBookmarkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000018 /* ExternalFolderBookmarkStore.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A00300010000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A00400010000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A00500010000000000000001;
+			remoteInfo = Clocker;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		A00200010000000000000001 /* ClockerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockerApp.swift; sourceTree = "<group>"; };
+		A00200010000000000000002 /* DailyRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRecord.swift; sourceTree = "<group>"; };
+		A00200010000000000000003 /* RuntimeCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeCache.swift; sourceTree = "<group>"; };
+		A00200010000000000000004 /* SyncState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncState.swift; sourceTree = "<group>"; };
+		A00200010000000000000005 /* DateKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateKey.swift; sourceTree = "<group>"; };
+		A00200010000000000000006 /* DurationFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurationFormatter.swift; sourceTree = "<group>"; };
+		A00200010000000000000007 /* JSONFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONFileStore.swift; sourceTree = "<group>"; };
+		A00200010000000000000008 /* LocalCacheStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalCacheStore.swift; sourceTree = "<group>"; };
+		A00200010000000000000009 /* DailyRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRecordStore.swift; sourceTree = "<group>"; };
+		A0020001000000000000000A /* RecordRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordRepository.swift; sourceTree = "<group>"; };
+		A0020001000000000000000B /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
+		A0020001000000000000000C /* ClockStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockStore.swift; sourceTree = "<group>"; };
+		A0020001000000000000000D /* SyncStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStatusView.swift; sourceTree = "<group>"; };
+		A0020001000000000000000E /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		A0020001000000000000000F /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		A00200010000000000000010 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A00200010000000000000011 /* DurationFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurationFormatterTests.swift; sourceTree = "<group>"; };
+		A00200010000000000000012 /* ClockStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockStoreTests.swift; sourceTree = "<group>"; };
+		A00200010000000000000013 /* Clocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clocker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00200010000000000000014 /* ClockerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClockerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00200010000000000000015 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		A00200010000000000000017 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
+		A00200010000000000000018 /* ExternalFolderBookmarkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalFolderBookmarkStore.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00600010000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00600010000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00100010000000000000013 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		542E18BB2F797CEB000FF46B /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000015 /* XCTest.framework */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		A00700010000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A00700010000000000000002 /* Clocker */,
+				A00700010000000000000007 /* ClockerTests */,
+				A00700010000000000000008 /* Products */,
+				A00200010000000000000017 /* README.md */,
+				542E18BB2F797CEB000FF46B /* Recovered References */,
+			);
+			sourceTree = "<group>";
+		};
+		A00700010000000000000002 /* Clocker */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000001 /* ClockerApp.swift */,
+				A00700010000000000000003 /* Models */,
+				A00700010000000000000004 /* Support */,
+				A00700010000000000000005 /* Storage */,
+				A00700010000000000000006 /* UI */,
+				A00700010000000000000009 /* Services */,
+				A0070001000000000000000A /* Features */,
+			);
+			path = Clocker;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000003 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000002 /* DailyRecord.swift */,
+				A00200010000000000000003 /* RuntimeCache.swift */,
+				A00200010000000000000004 /* SyncState.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000004 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000005 /* DateKey.swift */,
+				A00200010000000000000006 /* DurationFormatter.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000005 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000007 /* JSONFileStore.swift */,
+				A00200010000000000000008 /* LocalCacheStore.swift */,
+				A00200010000000000000009 /* DailyRecordStore.swift */,
+				A0020001000000000000000A /* RecordRepository.swift */,
+				A00200010000000000000018 /* ExternalFolderBookmarkStore.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000006 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				A0020001000000000000000D /* SyncStatusView.swift */,
+				A0020001000000000000000E /* MenuBarView.swift */,
+				A0020001000000000000000F /* HistoryView.swift */,
+				A00200010000000000000010 /* SettingsView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000007 /* ClockerTests */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000011 /* DurationFormatterTests.swift */,
+				A00200010000000000000012 /* ClockStoreTests.swift */,
+			);
+			path = ClockerTests;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000008 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000013 /* Clocker.app */,
+				A00200010000000000000014 /* ClockerTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000009 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A0020001000000000000000B /* LaunchAtLoginManager.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A0070001000000000000000A /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				A0020001000000000000000C /* ClockStore.swift */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00500010000000000000001 /* Clocker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00B00010000000000000001 /* Build configuration list for PBXNativeTarget "Clocker" */;
+			buildPhases = (
+				A00800010000000000000001 /* Sources */,
+				A00600010000000000000001 /* Frameworks */,
+				A00900010000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Clocker;
+			productName = Clocker;
+			productReference = A00200010000000000000013 /* Clocker.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A00500010000000000000002 /* ClockerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00B00010000000000000002 /* Build configuration list for PBXNativeTarget "ClockerTests" */;
+			buildPhases = (
+				A00800010000000000000002 /* Sources */,
+				A00600010000000000000002 /* Frameworks */,
+				A00900010000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A00A00010000000000000001 /* PBXTargetDependency */,
+			);
+			name = ClockerTests;
+			productName = ClockerTests;
+			productReference = A00200010000000000000014 /* ClockerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00400010000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					A00500010000000000000001 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					A00500010000000000000002 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = A00500010000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = A00B00010000000000000003 /* Build configuration list for PBXProject "Clocker" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A00700010000000000000001;
+			minimizedProjectReferenceProxies = 1;
+			productRefGroup = A00700010000000000000008 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A00500010000000000000001 /* Clocker */,
+				A00500010000000000000002 /* ClockerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00900010000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00900010000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00800010000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00100010000000000000001 /* ClockerApp.swift in Sources */,
+				A00100010000000000000002 /* DailyRecord.swift in Sources */,
+				A00100010000000000000003 /* RuntimeCache.swift in Sources */,
+				A00100010000000000000004 /* SyncState.swift in Sources */,
+				A00100010000000000000005 /* DateKey.swift in Sources */,
+				A00100010000000000000006 /* DurationFormatter.swift in Sources */,
+				A00100010000000000000007 /* JSONFileStore.swift in Sources */,
+				A00100010000000000000008 /* LocalCacheStore.swift in Sources */,
+				A00100010000000000000009 /* DailyRecordStore.swift in Sources */,
+				A0010001000000000000000A /* RecordRepository.swift in Sources */,
+				A00100010000000000000014 /* ExternalFolderBookmarkStore.swift in Sources */,
+				A0010001000000000000000B /* LaunchAtLoginManager.swift in Sources */,
+				A0010001000000000000000C /* ClockStore.swift in Sources */,
+				A0010001000000000000000D /* SyncStatusView.swift in Sources */,
+				A0010001000000000000000E /* MenuBarView.swift in Sources */,
+				A0010001000000000000000F /* HistoryView.swift in Sources */,
+				A00100010000000000000010 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00800010000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00100010000000000000011 /* DurationFormatterTests.swift in Sources */,
+				A00100010000000000000012 /* ClockStoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A00A00010000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A00500010000000000000001 /* Clocker */;
+			targetProxy = A00300010000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		A00C00010000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A00C00010000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		A00C00010000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = WN2DF2V3R4;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Clocker;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A00C00010000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = WN2DF2V3R4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Clocker;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		A00C00010000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/../Frameworks",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.clockerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
+			};
+			name = Debug;
+		};
+		A00C00010000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/../Frameworks",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.clockerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00B00010000000000000001 /* Build configuration list for PBXNativeTarget "Clocker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00C00010000000000000003 /* Debug */,
+				A00C00010000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00B00010000000000000002 /* Build configuration list for PBXNativeTarget "ClockerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00C00010000000000000005 /* Debug */,
+				A00C00010000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00B00010000000000000003 /* Build configuration list for PBXProject "Clocker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00C00010000000000000001 /* Debug */,
+				A00C00010000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A00400010000000000000001 /* Project object */;
+}
