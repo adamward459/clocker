@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release Tag"
+  short_description: "Create and publish annotated release tags"
+  default_prompt: "Use $release-tag to create or update an annotated Git tag for the current release state after building Clocker.app."
