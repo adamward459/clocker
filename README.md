@@ -1,19 +1,44 @@
 # Clocker
 
-Clocker is a native macOS menu bar app for tracking today's elapsed time.
+Clocker is a native macOS menu bar app for tracking elapsed time throughout the day.
 
-## Features
+## What it does
 
-- Live `HH:mm:ss` timer in the menu bar
-- Start, stop, and reset controls
-- Daily rollover at local midnight
-- History view with today's total and past immutable dates
-- Local current-day cache for resilience
-- Optional user-chosen folder for importing and saving day files
-- Optional launch at login
+- Shows a live `HH:mm:ss` timer in the menu bar
+- Lets you start, stop, and reset the current day’s timer
+- Persists daily records to a local storage folder
+- Restores today’s record when the app launches
+- Displays a history view of files in the storage folder
+- Supports optional launch at login
 
-## Notes
+## Project Structure
 
-- The app builds without Apple Developer signing requirements.
-- If you choose a folder in Settings, Clocker imports existing `yyyy-MM-dd.json` files from that folder and keeps saving future day records there.
-- The app can still build locally without signing by passing `CODE_SIGNING_ALLOWED=NO`.
+- `Clocker/ClockerApp.swift` - SwiftUI app entry point
+- `Clocker/Support/AppDelegate.swift` - menu bar and popover setup
+- `Clocker/Models/ClockModel.swift` - timer state, restore logic, and persistence
+- `Clocker/Services/TimeWriter.swift` - background file writer
+- `Clocker/Services/LoginItemService.swift` - login item integration
+- `Clocker/UI/` - menu bar popover screens and theme helpers
+
+## Storage
+
+Clocker uses `~/Documents/Clocker` as its default storage folder.
+
+The app writes daily files named like `yyyy-MM-dd.txt` and uses the latest line in each file as the restored timer value for that day.
+
+## Build Notes
+
+- The app can build locally without Apple Developer signing.
+- If needed, pass `CODE_SIGNING_ALLOWED=NO` when building from the command line.
+
+## Development
+
+This is an Xcode project:
+
+1. Open `Clocker.xcodeproj` in Xcode.
+2. Build and run the macOS app target.
+3. Use the menu bar icon to open the popover and test timer behavior.
+
+## License
+
+No license file is currently included in the repository.
