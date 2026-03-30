@@ -13,13 +13,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Clocker")
+            button.image = NSImage(named: "Logo")
+            button.image?.isTemplate = false
+            button.image?.size = NSSize(width: 20, height: 20)
+            button.imageScaling = .scaleProportionallyDown
             button.imagePosition = .imageLeading
             button.title = clockModel.displayTime
             button.font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
             button.action = #selector(togglePopover)
             button.target = self
         }
+
+        NSApp.applicationIconImage = NSImage(named: "Logo")
 
         // Keep button title in sync with the clock
         clockModel.onTimeChange = { [weak self] time in
