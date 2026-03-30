@@ -13,13 +13,30 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
     @Published var isRunning: Bool = false
     @Published var restoreState: RestoreState = .idle
     var onTimeChange: ((String) -> Void)?
+    var onRunningStateChange: ((Bool) -> Void)?
 
-    static let storagePath = "~/Documents/Clocker"
-
-    var resolvedStorageURL: URL {
-        let expanded = NSString(string: Self.storagePath).expandingTildeInPath
-        return URL(fileURLWithPath: expanded)
+    static var storageFolderName: String {
+        storageFolderName(bundleIdentifier: Bundle.main.bundleIdentifier)
     }
+
+    static func storageFolderName(bundleIdentifier: String?) -> String {
+        if bundleIdentifier?.contains(".dev") == true {
+            return "Clocker-Dev"
+        }
+
+        #if DEBUG
+        return "Clocker-Dev"
+        #else
+        return "Clocker"
+        #endif
+    }
+
+    static var storageURL: URL {
+        let documents = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Documents", isDirectory: true)
+        return documents.appendingPathComponent(storageFolderName, isDirectory: true)
+    }
+
+    var resolvedStorageURL: URL { Self.storageURL }
 
     private var timer: AnyCancellable?
     private let timeWriter: TimeWriter
@@ -27,16 +44,11 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
     private var restoreFeedbackWorkItem: DispatchWorkItem?
 
     convenience init() {
-        self.init(timeWriter: TimeWriter(storageURL: Self.defaultStorageURL))
+        self.init(timeWriter: TimeWriter(storageURL: Self.storageURL))
     }
 
     init(timeWriter: TimeWriter) {
         self.timeWriter = timeWriter
-    }
-
-    private static var defaultStorageURL: URL {
-        let expanded = NSString(string: Self.storagePath).expandingTildeInPath
-        return URL(fileURLWithPath: expanded)
     }
 
     func restoreTodayRecordIfAvailable() {
@@ -81,6 +93,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
     func start() {
         guard !isRunning else { return }
         isRunning = true
+        onRunningStateChange?(true)
         timer = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
@@ -97,6 +110,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         timer?.cancel()
         timer = nil
         isRunning = false
+        onRunningStateChange?(false)
     }
 
     func reset() {
@@ -105,6 +119,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         elapsedSeconds = 0
         displayTime = "00:00"
         onTimeChange?(displayTime)
+        onRunningStateChange?(false)
     }
 
     static func currentDayFileURL(storageURL: URL, date: Date = Date()) -> URL {

@@ -83,7 +83,7 @@ struct MainMenuPage: View {
                         VStack(alignment: .leading, spacing: 1) {
                             Text("Storage")
                                 .font(ClockerTheme.Fonts.rowLabel)
-                            Text("~/Documents/Clocker")
+                            Text(clockModel.resolvedStorageURL.path.replacingOccurrences(of: NSHomeDirectory(), with: "~"))
                                 .font(ClockerTheme.Fonts.caption)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)

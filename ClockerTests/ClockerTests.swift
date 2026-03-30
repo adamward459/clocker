@@ -54,6 +54,11 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(url.lastPathComponent, "1970-01-01.txt")
     }
 
+    func testClockModelUsesBuildSpecificStorageFolder() {
+        XCTAssertEqual(ClockModel.storageFolderName(bundleIdentifier: "com.example.clocker.dev"), "Clocker-Dev")
+        XCTAssertEqual(ClockModel.storageFolderName(bundleIdentifier: "com.example.clocker"), "Clocker")
+    }
+
     private func todayFileURL() -> URL {
         ClockModel.currentDayFileURL(storageURL: tempDirectory)
     }

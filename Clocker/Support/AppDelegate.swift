@@ -7,20 +7,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     private var popover: NSPopover!
     private let clockModel = ClockModel()
     let loginItemService = LoginItemService()
-    private var monitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(named: "Logo")
-            button.image?.isTemplate = false
-            button.image?.size = NSSize(width: 20, height: 20)
             button.imageScaling = .scaleProportionallyDown
             button.imagePosition = .imageLeading
-            button.title = clockModel.displayTime
             button.font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
-            button.action = #selector(togglePopover)
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            button.action = #selector(handleStatusItemClick(_:))
             button.target = self
         }
 
@@ -28,11 +24,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
 
         // Keep button title in sync with the clock
         clockModel.onTimeChange = { [weak self] time in
-            self?.statusItem.button?.title = time
+            self?.updateStatusItemTitle()
+        }
+        clockModel.onRunningStateChange = { [weak self] _ in
+            self?.updateStatusItemTitle()
         }
 
         popover = NSPopover()
-        popover.contentSize = NSSize(width: 280, height: 10)
+        popover.contentSize = NSSize(width: 280, height: 360)
         popover.behavior = .transient
         popover.animates = true
         popover.contentViewController = NSHostingController(
@@ -42,6 +41,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         )
 
         clockModel.restoreTodayRecordIfAvailable()
+        updateStatusItemTitle()
+    }
+
+    @objc private func handleStatusItemClick(_ sender: Any?) {
+        let eventType = NSApp.currentEvent?.type
+        if eventType == .rightMouseUp || NSApp.currentEvent?.modifierFlags.contains(.control) == true {
+            togglePopover()
+        } else {
+            toggleClock()
+        }
     }
 
     @objc private func togglePopover() {
@@ -51,5 +60,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         } else {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
+    }
+
+    fileprivate func toggleClock() {
+        if popover.isShown {
+            popover.performClose(nil)
+        }
+
+        if clockModel.isRunning {
+            clockModel.stop()
+        } else {
+            clockModel.start()
+        }
+    }
+
+    private func updateStatusItemTitle() {
+        guard let button = statusItem.button else { return }
+        let systemName = clockModel.isRunning ? "pause.fill" : "play.fill"
+        button.image = NSImage(systemSymbolName: systemName, accessibilityDescription: nil)
+        button.image?.isTemplate = true
+        button.image?.size = NSSize(width: 12, height: 12)
+        button.title = " \(clockModel.displayTime)"
     }
 }

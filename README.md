@@ -22,7 +22,10 @@ Clocker is a native macOS menu bar app for tracking elapsed time throughout the 
 
 ## Storage
 
-Clocker uses `~/Documents/Clocker` as its default storage folder.
+Clocker uses a build-specific storage folder under `~/Documents`:
+
+- Debug builds use `~/Documents/Clocker-Dev`
+- Release builds use `~/Documents/Clocker`
 
 The app writes daily files named like `yyyy-MM-dd.txt` and uses the latest line in each file as the restored timer value for that day.
 

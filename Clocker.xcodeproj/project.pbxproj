@@ -21,6 +21,16 @@
 		A00100010000000000000012 /* ClockerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000012 /* ClockerTests.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A00F00010000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A00400010000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A00500010000000000000001;
+			remoteInfo = Clocker;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		A00200010000000000000001 /* ClockerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockerApp.swift; sourceTree = "<group>"; };
 		A00200010000000000000002 /* ClockModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockModel.swift; sourceTree = "<group>"; };
@@ -35,11 +45,19 @@
 		A00200010000000000000011 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
 		A00200010000000000000012 /* ClockerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockerTests.swift; sourceTree = "<group>"; };
 		A00200010000000000000013 /* Clocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clocker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00200010000000000000015 /* ClockerDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClockerDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A00200010000000000000014 /* ClockerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClockerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A00600010000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00600010000000000000002 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -79,15 +97,6 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		A00700010000000000000006 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				A00200010000000000000009 /* TimeWriter.swift */,
-				A00200010000000000000011 /* LoginItemService.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
 		A00700010000000000000004 /* UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -108,10 +117,20 @@
 			path = Support;
 			sourceTree = "<group>";
 		};
+		A00700010000000000000006 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000009 /* TimeWriter.swift */,
+				A00200010000000000000011 /* LoginItemService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		A00700010000000000000008 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				A00200010000000000000013 /* Clocker.app */,
+				A00200010000000000000015 /* ClockerDev.app */,
 				A00200010000000000000014 /* ClockerTests.xctest */,
 			);
 			name = Products;
@@ -145,6 +164,23 @@
 			productReference = A00200010000000000000013 /* Clocker.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A00500010000000000000003 /* ClockerDev */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00B00010000000000000004 /* Build configuration list for PBXNativeTarget "ClockerDev" */;
+			buildPhases = (
+				A00800010000000000000003 /* Sources */,
+				A00600010000000000000003 /* Frameworks */,
+				A00900010000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ClockerDev;
+			productName = ClockerDev;
+			productReference = A00200010000000000000015 /* ClockerDev.app */;
+			productType = "com.apple.product-type.application";
+		};
 		A00500010000000000000002 /* ClockerTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A00B00010000000000000002 /* Build configuration list for PBXNativeTarget "ClockerTests" */;
@@ -175,6 +211,9 @@
 					A00500010000000000000001 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
+					A00500010000000000000003 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 					A00500010000000000000002 = {
 						CreatedOnToolsVersion = 26.0.1;
 						TestTargetID = A00500010000000000000001;
@@ -196,6 +235,7 @@
 			projectRoot = "";
 			targets = (
 				A00500010000000000000001 /* Clocker */,
+				A00500010000000000000003 /* ClockerDev */,
 				A00500010000000000000002 /* ClockerTests */,
 			);
 		};
@@ -210,32 +250,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A00900010000000000000002 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
+		A00900010000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A00100010000000000000012 /* ClockerTests.swift in Sources */,
+				A00100010000000000000010 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A00600010000000000000002 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A00E00010000000000000001 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A00500010000000000000001 /* Clocker */;
-			targetProxy = A00F00010000000000000001 /* PBXContainerItemProxy */;
-		};
-		A00F00010000000000000001 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A00400010000000000000001 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A00500010000000000000001;
-			remoteInfo = Clocker;
 		};
 /* End PBXResourcesBuildPhase section */
 
@@ -257,7 +278,40 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A00900010000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00100010000000000000012 /* ClockerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00800010000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00100010000000000000001 /* ClockerApp.swift in Sources */,
+				A00100010000000000000002 /* ClockModel.swift in Sources */,
+				A00100010000000000000003 /* MenuBarPopover.swift in Sources */,
+				A00100010000000000000004 /* MainMenuPage.swift in Sources */,
+				A00100010000000000000005 /* HistoryPage.swift in Sources */,
+				A00100010000000000000006 /* MenuRowButtonStyle.swift in Sources */,
+				A00100010000000000000007 /* AppDelegate.swift in Sources */,
+				A00100010000000000000008 /* Theme.swift in Sources */,
+				A00100010000000000000009 /* TimeWriter.swift in Sources */,
+				A00100010000000000000011 /* LoginItemService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A00E00010000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A00500010000000000000001 /* Clocker */;
+			targetProxy = A00F00010000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A00C00010000000000000001 /* Debug */ = {
@@ -295,8 +349,8 @@
 		A00C00010000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = WN2DF2V3R4;
@@ -319,8 +373,8 @@
 		A00C00010000000000000004 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = WN2DF2V3R4;
@@ -339,10 +393,58 @@
 			};
 			name = Release;
 		};
+		A00C00010000000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = WN2DF2V3R4;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ClockerDev;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker.dev;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A00C00010000000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = WN2DF2V3R4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ClockerDev;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker.dev;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 		A00C00010000000000000005 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
@@ -354,7 +456,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.ClockerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
 			};
 			name = Debug;
@@ -363,6 +464,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = YES;
@@ -374,7 +476,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.ClockerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
 			};
 			name = Release;
@@ -389,7 +490,7 @@
 				A00C00010000000000000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		A00B00010000000000000002 /* Build configuration list for PBXNativeTarget "ClockerTests" */ = {
 			isa = XCConfigurationList;
@@ -398,7 +499,16 @@
 				A00C00010000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
+		};
+		A00B00010000000000000004 /* Build configuration list for PBXNativeTarget "ClockerDev" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00C00010000000000000007 /* Debug */,
+				A00C00010000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
 		};
 		A00B00010000000000000003 /* Build configuration list for PBXProject "Clocker" */ = {
 			isa = XCConfigurationList;
@@ -407,7 +517,7 @@
 				A00C00010000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
