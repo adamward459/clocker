@@ -26,15 +26,23 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
     private var elapsedSeconds: Int = 0
     private var restoreFeedbackWorkItem: DispatchWorkItem?
 
-    init() {
+    convenience init() {
+        self.init(timeWriter: TimeWriter(storageURL: Self.defaultStorageURL))
+    }
+
+    init(timeWriter: TimeWriter) {
+        self.timeWriter = timeWriter
+    }
+
+    private static var defaultStorageURL: URL {
         let expanded = NSString(string: Self.storagePath).expandingTildeInPath
-        timeWriter = TimeWriter(storageURL: URL(fileURLWithPath: expanded))
+        return URL(fileURLWithPath: expanded)
     }
 
     func restoreTodayRecordIfAvailable() {
         guard !isRunning else { return }
 
-        let url = currentDayFileURL()
+        let url = Self.currentDayFileURL(storageURL: resolvedStorageURL)
         let fm = FileManager.default
         guard fm.fileExists(atPath: url.path) else {
             restoreState = .unavailable
@@ -93,19 +101,20 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
 
     func reset() {
         stop()
+        timeWriter.clearTodayRecord()
         elapsedSeconds = 0
         displayTime = "00:00"
         onTimeChange?(displayTime)
     }
 
-    private func currentDayFileURL() -> URL {
+    static func currentDayFileURL(storageURL: URL, date: Date = Date()) -> URL {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
-        let fileName = fmt.string(from: Date()) + ".txt"
-        return resolvedStorageURL.appendingPathComponent(fileName)
+        let fileName = fmt.string(from: date) + ".txt"
+        return storageURL.appendingPathComponent(fileName)
     }
 
-    private static func parseElapsedSeconds(from contents: String) -> Int? {
+    static func parseElapsedSeconds(from contents: String) -> Int? {
         let lines = contents
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -115,7 +124,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         return parseTimeString(lastLine)
     }
 
-    private static func parseTimeString(_ value: String) -> Int? {
+    static func parseTimeString(_ value: String) -> Int? {
         let parts = value.split(separator: ":").map(String.init)
         guard parts.count == 2 || parts.count == 3 else { return nil }
 
@@ -129,7 +138,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         }
     }
 
-    private static func formatElapsed(_ totalSeconds: Int) -> String {
+    static func formatElapsed(_ totalSeconds: Int) -> String {
         let h = totalSeconds / 3600
         let m = (totalSeconds % 3600) / 60
         let s = totalSeconds % 60

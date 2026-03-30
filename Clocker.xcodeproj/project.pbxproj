@@ -18,6 +18,7 @@
 		A00100010000000000000009 /* TimeWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000009 /* TimeWriter.swift */; };
 		A00100010000000000000010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000010 /* Assets.xcassets */; };
 		A00100010000000000000011 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000011 /* LoginItemService.swift */; };
+		A00100010000000000000012 /* ClockerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000012 /* ClockerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,7 +33,9 @@
 		A00200010000000000000009 /* TimeWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeWriter.swift; sourceTree = "<group>"; };
 		A00200010000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A00200010000000000000011 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
+		A00200010000000000000012 /* ClockerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockerTests.swift; sourceTree = "<group>"; };
 		A00200010000000000000013 /* Clocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clocker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00200010000000000000014 /* ClockerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClockerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,6 +53,7 @@
 			isa = PBXGroup;
 			children = (
 				A00700010000000000000002 /* Clocker */,
+				A00700010000000000000009 /* ClockerTests */,
 				A00700010000000000000008 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -108,8 +112,17 @@
 			isa = PBXGroup;
 			children = (
 				A00200010000000000000013 /* Clocker.app */,
+				A00200010000000000000014 /* ClockerTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000009 /* ClockerTests */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000012 /* ClockerTests.swift */,
+			);
+			path = ClockerTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -132,6 +145,23 @@
 			productReference = A00200010000000000000013 /* Clocker.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A00500010000000000000002 /* ClockerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00B00010000000000000002 /* Build configuration list for PBXNativeTarget "ClockerTests" */;
+			buildPhases = (
+				A00900010000000000000002 /* Sources */,
+				A00600010000000000000002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A00E00010000000000000001 /* PBXTargetDependency */,
+			);
+			name = ClockerTests;
+			productName = ClockerTests;
+			productReference = A00200010000000000000014 /* ClockerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -144,6 +174,10 @@
 				TargetAttributes = {
 					A00500010000000000000001 = {
 						CreatedOnToolsVersion = 26.0.1;
+					};
+					A00500010000000000000002 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = A00500010000000000000001;
 					};
 				};
 			};
@@ -162,6 +196,7 @@
 			projectRoot = "";
 			targets = (
 				A00500010000000000000001 /* Clocker */,
+				A00500010000000000000002 /* ClockerTests */,
 			);
 		};
 /* End PBXProject section */
@@ -174,6 +209,33 @@
 				A00100010000000000000010 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00900010000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00100010000000000000012 /* ClockerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00600010000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00E00010000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A00500010000000000000001 /* Clocker */;
+			targetProxy = A00F00010000000000000001 /* PBXContainerItemProxy */;
+		};
+		A00F00010000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A00400010000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A00500010000000000000001;
+			remoteInfo = Clocker;
 		};
 /* End PBXResourcesBuildPhase section */
 
@@ -277,6 +339,46 @@
 			};
 			name = Release;
 		};
+		A00C00010000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ClockerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
+			};
+			name = Debug;
+		};
+		A00C00010000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ClockerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -285,6 +387,15 @@
 			buildConfigurations = (
 				A00C00010000000000000003 /* Debug */,
 				A00C00010000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00B00010000000000000002 /* Build configuration list for PBXNativeTarget "ClockerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00C00010000000000000005 /* Debug */,
+				A00C00010000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -36,4 +36,25 @@ final class TimeWriter: @unchecked Sendable {
             }
         }
     }
+
+    /// Removes today's record from disk.
+    /// Uses the same queue as writes so any queued persist finishes first.
+    func clearTodayRecord() {
+        let url = storageURL
+        queue.sync {
+            let fm = FileManager.default
+            let fmt = DateFormatter()
+            fmt.dateFormat = "yyyy-MM-dd"
+            let fileName = fmt.string(from: Date()) + ".txt"
+            let fileURL = url.appendingPathComponent(fileName)
+
+            try? fm.removeItem(at: fileURL)
+        }
+    }
+
+    /// Waits until all previously queued work has completed.
+    /// Useful for tests that need deterministic file-system state.
+    func waitUntilIdle() {
+        queue.sync { }
+    }
 }
