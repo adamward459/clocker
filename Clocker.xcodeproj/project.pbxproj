@@ -7,6 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		542E18BF2F7AF4FC000FF46B /* ClockerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000001 /* ClockerApp.swift */; };
+		542E18C02F7AF4FC000FF46B /* ClockModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000002 /* ClockModel.swift */; };
+		542E18C12F7AF4FC000FF46B /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000003 /* MenuBarPopover.swift */; };
+		542E18C22F7AF4FC000FF46B /* MainMenuPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000004 /* MainMenuPage.swift */; };
+		542E18C32F7AF4FC000FF46B /* HistoryPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000005 /* HistoryPage.swift */; };
+		542E18C42F7AF4FC000FF46B /* MenuRowButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000006 /* MenuRowButtonStyle.swift */; };
+		542E18C52F7AF4FC000FF46B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000007 /* AppDelegate.swift */; };
+		542E18C62F7AF4FC000FF46B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000008 /* Theme.swift */; };
+		542E18C72F7AF4FC000FF46B /* TimeWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000009 /* TimeWriter.swift */; };
+		542E18C82F7AF4FC000FF46B /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000011 /* LoginItemService.swift */; };
+		542E18C92F7AF4FC000FF46B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000010 /* Assets.xcassets */; };
 		A00100010000000000000001 /* ClockerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000001 /* ClockerApp.swift */; };
 		A00100010000000000000002 /* ClockModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000002 /* ClockModel.swift */; };
 		A00100010000000000000003 /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000003 /* MenuBarPopover.swift */; };
@@ -45,8 +56,8 @@
 		A00200010000000000000011 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
 		A00200010000000000000012 /* ClockerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockerTests.swift; sourceTree = "<group>"; };
 		A00200010000000000000013 /* Clocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clocker.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A00200010000000000000015 /* ClockerDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClockerDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A00200010000000000000014 /* ClockerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClockerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00200010000000000000015 /* ClockerDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClockerDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -164,23 +175,6 @@
 			productReference = A00200010000000000000013 /* Clocker.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A00500010000000000000003 /* ClockerDev */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A00B00010000000000000004 /* Build configuration list for PBXNativeTarget "ClockerDev" */;
-			buildPhases = (
-				A00800010000000000000003 /* Sources */,
-				A00600010000000000000003 /* Frameworks */,
-				A00900010000000000000003 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = ClockerDev;
-			productName = ClockerDev;
-			productReference = A00200010000000000000015 /* ClockerDev.app */;
-			productType = "com.apple.product-type.application";
-		};
 		A00500010000000000000002 /* ClockerTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A00B00010000000000000002 /* Build configuration list for PBXNativeTarget "ClockerTests" */;
@@ -198,6 +192,22 @@
 			productReference = A00200010000000000000014 /* ClockerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		A00500010000000000000003 /* ClockerDev */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00B00010000000000000004 /* Build configuration list for PBXNativeTarget "ClockerDev" */;
+			buildPhases = (
+				A00800010000000000000003 /* Sources */,
+				A00900010000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ClockerDev;
+			productName = ClockerDev;
+			productReference = A00200010000000000000015 /* ClockerDev.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -211,12 +221,12 @@
 					A00500010000000000000001 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
-					A00500010000000000000003 = {
-						CreatedOnToolsVersion = 26.0.1;
-					};
 					A00500010000000000000002 = {
 						CreatedOnToolsVersion = 26.0.1;
 						TestTargetID = A00500010000000000000001;
+					};
+					A00500010000000000000003 = {
+						CreatedOnToolsVersion = 26.0.1;
 					};
 				};
 			};
@@ -254,7 +264,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A00100010000000000000010 /* Assets.xcassets in Resources */,
+				542E18C92F7AF4FC000FF46B /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,28 +288,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A00800010000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				542E18BF2F7AF4FC000FF46B /* ClockerApp.swift in Sources */,
+				542E18C02F7AF4FC000FF46B /* ClockModel.swift in Sources */,
+				542E18C12F7AF4FC000FF46B /* MenuBarPopover.swift in Sources */,
+				542E18C22F7AF4FC000FF46B /* MainMenuPage.swift in Sources */,
+				542E18C32F7AF4FC000FF46B /* HistoryPage.swift in Sources */,
+				542E18C42F7AF4FC000FF46B /* MenuRowButtonStyle.swift in Sources */,
+				542E18C52F7AF4FC000FF46B /* AppDelegate.swift in Sources */,
+				542E18C62F7AF4FC000FF46B /* Theme.swift in Sources */,
+				542E18C72F7AF4FC000FF46B /* TimeWriter.swift in Sources */,
+				542E18C82F7AF4FC000FF46B /* LoginItemService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A00900010000000000000002 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				A00100010000000000000012 /* ClockerTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A00800010000000000000003 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A00100010000000000000001 /* ClockerApp.swift in Sources */,
-				A00100010000000000000002 /* ClockModel.swift in Sources */,
-				A00100010000000000000003 /* MenuBarPopover.swift in Sources */,
-				A00100010000000000000004 /* MainMenuPage.swift in Sources */,
-				A00100010000000000000005 /* HistoryPage.swift in Sources */,
-				A00100010000000000000006 /* MenuRowButtonStyle.swift in Sources */,
-				A00100010000000000000007 /* AppDelegate.swift in Sources */,
-				A00100010000000000000008 /* Theme.swift in Sources */,
-				A00100010000000000000009 /* TimeWriter.swift in Sources */,
-				A00100010000000000000011 /* LoginItemService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,6 +403,46 @@
 			};
 			name = Release;
 		};
+		A00C00010000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ClockerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
+			};
+			name = Debug;
+		};
+		A00C00010000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ClockerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
+			};
+			name = Release;
+		};
 		A00C00010000000000000007 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -440,46 +490,6 @@
 			};
 			name = Release;
 		};
-		A00C00010000000000000005 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.ClockerTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
-			};
-			name = Debug;
-		};
-		A00C00010000000000000006 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.ClockerTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clocker.app/Contents/MacOS/Clocker";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -490,7 +500,7 @@
 				A00C00010000000000000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		A00B00010000000000000002 /* Build configuration list for PBXNativeTarget "ClockerTests" */ = {
 			isa = XCConfigurationList;
@@ -499,16 +509,7 @@
 				A00C00010000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		A00B00010000000000000004 /* Build configuration list for PBXNativeTarget "ClockerDev" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A00C00010000000000000007 /* Debug */,
-				A00C00010000000000000008 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		A00B00010000000000000003 /* Build configuration list for PBXProject "Clocker" */ = {
 			isa = XCConfigurationList;
@@ -517,7 +518,16 @@
 				A00C00010000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
+		};
+		A00B00010000000000000004 /* Build configuration list for PBXNativeTarget "ClockerDev" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00C00010000000000000007 /* Debug */,
+				A00C00010000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
