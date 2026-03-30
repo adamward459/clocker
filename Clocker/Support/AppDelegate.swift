@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
@@ -32,6 +33,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
             rootView: MenuBarPopover()
                 .environmentObject(clockModel)
         )
+
+        clockModel.restoreTodayRecordIfAvailable()
     }
 
     @objc private func togglePopover() {

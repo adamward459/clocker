@@ -13,6 +13,17 @@ struct MainMenuPage: View {
                     .font(ClockerTheme.Fonts.clockDisplay)
                     .monospacedDigit()
 
+                if clockModel.restoreState == .restoring {
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text("Restoring today's record")
+                            .font(ClockerTheme.Fonts.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .transition(.opacity)
+                }
+
                 HStack(spacing: 12) {
                     if clockModel.isRunning {
                         Button("Stop") { clockModel.stop() }
@@ -119,8 +130,6 @@ struct MainMenuPage: View {
             .padding(.vertical, ClockerTheme.Spacing.sectionGap)
         }
     }
-
-
 }
 
 // MARK: - Reusable row components
