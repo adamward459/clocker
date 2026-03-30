@@ -13,7 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Clocker")
             button.imagePosition = .imageLeading
-            button.title = clockModel.currentTime
+            button.title = clockModel.displayTime
             button.font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
             button.action = #selector(togglePopover)
             button.target = self

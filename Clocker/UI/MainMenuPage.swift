@@ -7,14 +7,28 @@ struct MainMenuPage: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Clock header
-            VStack(spacing: 6) {
-                Text(clockModel.currentTime)
+            // Stopwatch header
+            VStack(spacing: 10) {
+                Text(clockModel.displayTime)
                     .font(ClockerTheme.Fonts.clockDisplay)
                     .monospacedDigit()
-                Text(formattedDate)
-                    .font(ClockerTheme.Fonts.dateLabel)
-                    .foregroundStyle(.secondary)
+
+                HStack(spacing: 12) {
+                    if clockModel.isRunning {
+                        Button("Stop") { clockModel.stop() }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                    } else {
+                        Button("Start") { clockModel.start() }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                    }
+                    if !clockModel.isRunning && clockModel.displayTime != "00:00" {
+                        Button("Reset") { clockModel.reset() }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                    }
+                }
             }
             .padding(.top, 24)
             .padding(.bottom, 20)
@@ -106,11 +120,7 @@ struct MainMenuPage: View {
         }
     }
 
-    private var formattedDate: String {
-        let f = DateFormatter()
-        f.dateFormat = "EEEE, MMM d"
-        return f.string(from: Date())
-    }
+
 }
 
 // MARK: - Reusable row components
