@@ -13,16 +13,7 @@ struct MainMenuPage: View {
                     .font(ClockerTheme.Fonts.clockDisplay)
                     .monospacedDigit()
 
-                if clockModel.restoreState == .restoring {
-                    HStack(spacing: 6) {
-                        ProgressView()
-                            .controlSize(.small)
-                        Text("Restoring today's record")
-                            .font(ClockerTheme.Fonts.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .transition(.opacity)
-                }
+                statusLine
 
                 HStack(spacing: 12) {
                     if clockModel.isRunning {
@@ -42,7 +33,7 @@ struct MainMenuPage: View {
                 }
             }
             .padding(.top, 24)
-            .padding(.bottom, 20)
+            .padding(.bottom, 16)
             .frame(maxWidth: .infinity)
 
             Divider()
@@ -135,6 +126,37 @@ struct MainMenuPage: View {
             }
             .padding(.vertical, ClockerTheme.Spacing.sectionGap)
         }
+    }
+
+    @ViewBuilder
+    private var statusLine: some View {
+        switch clockModel.restoreState {
+        case .restoring:
+            HStack(spacing: 6) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Restoring today's record")
+                    .font(ClockerTheme.Fonts.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .transition(.opacity)
+        case .restored:
+            statusText(label: "Restored today's record", systemImage: "checkmark.circle")
+        case .unavailable:
+            statusText(label: clockModel.isRunning ? "Tracking time" : "Ready to start", systemImage: clockModel.isRunning ? "timer" : "pause.circle")
+        case .idle:
+            statusText(label: clockModel.isRunning ? "Tracking time" : "Ready to start", systemImage: clockModel.isRunning ? "timer" : "pause.circle")
+        }
+    }
+
+    private func statusText(label: String, systemImage: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.system(size: 11, weight: .semibold))
+            Text(label)
+                .font(ClockerTheme.Fonts.caption)
+        }
+        .foregroundStyle(.secondary)
     }
 }
 
