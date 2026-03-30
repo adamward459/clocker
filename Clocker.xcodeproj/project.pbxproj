@@ -17,6 +17,7 @@
 		A00100010000000000000008 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000008 /* Theme.swift */; };
 		A00100010000000000000009 /* TimeWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000009 /* TimeWriter.swift */; };
 		A00100010000000000000010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000010 /* Assets.xcassets */; };
+		A00100010000000000000011 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000011 /* LoginItemService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		A00200010000000000000008 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		A00200010000000000000009 /* TimeWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeWriter.swift; sourceTree = "<group>"; };
 		A00200010000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A00200010000000000000011 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
 		A00200010000000000000013 /* Clocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clocker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -77,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				A00200010000000000000009 /* TimeWriter.swift */,
+				A00200010000000000000011 /* LoginItemService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -188,6 +191,7 @@
 				A00100010000000000000007 /* AppDelegate.swift in Sources */,
 				A00100010000000000000008 /* Theme.swift in Sources */,
 				A00100010000000000000009 /* TimeWriter.swift in Sources */,
+				A00100010000000000000011 /* LoginItemService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

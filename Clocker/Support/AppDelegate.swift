@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
     private let clockModel = ClockModel()
+    let loginItemService = LoginItemService()
     private var monitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -32,6 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         popover.contentViewController = NSHostingController(
             rootView: MenuBarPopover()
                 .environmentObject(clockModel)
+                .environmentObject(loginItemService)
         )
 
         clockModel.restoreTodayRecordIfAvailable()

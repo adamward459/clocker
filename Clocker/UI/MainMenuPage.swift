@@ -2,7 +2,7 @@ import SwiftUI
 
 struct MainMenuPage: View {
     @EnvironmentObject var clockModel: ClockModel
-    @State private var openAtLogin = false
+    @EnvironmentObject var loginItemService: LoginItemService
     var navigateToHistory: () -> Void
 
     var body: some View {
@@ -56,7 +56,13 @@ struct MainMenuPage: View {
                         Text("Open at Login")
                             .font(ClockerTheme.Fonts.rowLabel)
                         Spacer()
-                        Toggle("", isOn: $openAtLogin)
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: { loginItemService.isEnabled },
+                                set: { loginItemService.setEnabled($0) }
+                            )
+                        )
                             .toggleStyle(.switch)
                             .controlSize(.mini)
                             .labelsHidden()
