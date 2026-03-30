@@ -23,7 +23,7 @@ struct MenuBarPopover: View {
                 withAnimation(.easeInOut(duration: 0.25)) {
                     currentPage = .main
                 }
-            })
+            }, isVisible: currentPage == .history)
             .frame(height: currentPage == .history ? nil : 0)
             .offset(x: currentPage == .history ? 0 : 280)
             .opacity(currentPage == .history ? 1 : 0)

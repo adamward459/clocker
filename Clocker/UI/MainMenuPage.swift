@@ -3,7 +3,6 @@ import SwiftUI
 struct MainMenuPage: View {
     @EnvironmentObject var clockModel: ClockModel
     @State private var openAtLogin = false
-    @State private var storagePath: String = "~/Documents/Clocker"
     var navigateToHistory: () -> Void
 
     var body: some View {
@@ -24,7 +23,6 @@ struct MainMenuPage: View {
             Divider()
                 .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
 
-            // Menu rows
             VStack(spacing: 2) {
                 // Open at Login
                 HoverRow {
@@ -40,23 +38,28 @@ struct MainMenuPage: View {
                     }
                 }
 
-                // Storage folder
+                // Storage info (read-only, opens in Finder on click)
                 Button {
-                    chooseFolder()
+                    let url = clockModel.resolvedStorageURL
+                    let fm = FileManager.default
+                    if !fm.fileExists(atPath: url.path) {
+                        try? fm.createDirectory(at: url, withIntermediateDirectories: true)
+                    }
+                    NSWorkspace.shared.open(url)
                 } label: {
                     HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
                         MenuIcon(systemName: "folder")
                         VStack(alignment: .leading, spacing: 1) {
                             Text("Storage")
                                 .font(ClockerTheme.Fonts.rowLabel)
-                            Text(displayPath)
+                            Text("~/Documents/Clocker")
                                 .font(ClockerTheme.Fonts.caption)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                         }
                         Spacer()
-                        Image(systemName: "arrow.up.right")
+                        Image(systemName: "arrow.up.forward.square")
                             .font(ClockerTheme.Fonts.chevron)
                             .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
                     }
@@ -107,26 +110,6 @@ struct MainMenuPage: View {
         let f = DateFormatter()
         f.dateFormat = "EEEE, MMM d"
         return f.string(from: Date())
-    }
-
-    private var displayPath: String {
-        storagePath.replacingOccurrences(
-            of: NSHomeDirectory(),
-            with: "~"
-        )
-    }
-
-    private func chooseFolder() {
-        let panel = NSOpenPanel()
-        panel.title = "Choose Storage Folder"
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.canCreateDirectories = true
-        panel.allowsMultipleSelection = false
-
-        if panel.runModal() == .OK, let url = panel.url {
-            storagePath = url.path(percentEncoded: false)
-        }
     }
 }
 

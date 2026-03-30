@@ -5,6 +5,13 @@ final class ClockModel: ObservableObject {
     @Published var currentTime: String = ""
     var onTimeChange: ((String) -> Void)?
 
+    static let storagePath = "~/Documents/Clocker"
+
+    var resolvedStorageURL: URL {
+        let expanded = NSString(string: Self.storagePath).expandingTildeInPath
+        return URL(fileURLWithPath: expanded)
+    }
+
     private var timer: AnyCancellable?
     private let formatter: DateFormatter = {
         let f = DateFormatter()
