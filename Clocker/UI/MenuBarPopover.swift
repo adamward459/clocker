@@ -28,7 +28,7 @@ struct MenuBarPopover: View {
             .offset(x: currentPage == .history ? 0 : 280)
             .opacity(currentPage == .history ? 1 : 0)
         }
-        .frame(width: 280)
+        .frame(width: ClockerTheme.Size.popoverWidth)
         .clipped()
     }
 }

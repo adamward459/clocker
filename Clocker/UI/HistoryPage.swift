@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HistoryPage: View {
     var navigateBack: () -> Void
+    @State private var backHovered = false
 
     private let mockEntries: [(String, String, String)] = [
         ("Today, 09:15 AM", "Started session", "play.circle.fill"),
@@ -19,56 +20,66 @@ struct HistoryPage: View {
                 Button(action: navigateBack) {
                     HStack(spacing: 3) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(ClockerTheme.Fonts.navBackIcon)
                         Text("Back")
-                            .font(.system(size: 13))
+                            .font(ClockerTheme.Fonts.navBack)
                     }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(
+                        RoundedRectangle(cornerRadius: ClockerTheme.Size.cornerRadius, style: .continuous)
+                            .fill(backHovered ? ClockerTheme.Colors.hoverFill : .clear)
+                    )
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.accentColor)
+                .onHover { backHovered = $0 }
+                .animation(.easeInOut(duration: 0.15), value: backHovered)
 
                 Spacer()
 
                 Text("History")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(ClockerTheme.Fonts.navTitle)
 
                 Spacer()
 
                 // Balance spacer
                 HStack(spacing: 3) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(ClockerTheme.Fonts.navBackIcon)
                     Text("Back")
-                        .font(.system(size: 13))
+                        .font(ClockerTheme.Fonts.navBack)
                 }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
                 .hidden()
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
             .padding(.vertical, 12)
 
             Divider()
-                .padding(.horizontal, 16)
+                .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
 
             ScrollView {
                 VStack(spacing: 0) {
                     ForEach(Array(mockEntries.enumerated()), id: \.offset) { index, entry in
-                        HStack(spacing: 10) {
+                        HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
                             Image(systemName: entry.2)
-                                .font(.system(size: 14))
-                                .foregroundStyle(.secondary)
-                                .frame(width: 20, alignment: .center)
+                                .font(ClockerTheme.Fonts.historyIcon)
+                                .foregroundStyle(ClockerTheme.Colors.rowIcon)
+                                .frame(width: ClockerTheme.Size.iconWidth, alignment: .center)
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(entry.1)
-                                    .font(.system(size: 13))
+                                    .font(ClockerTheme.Fonts.rowLabel)
                                 Text(entry.0)
-                                    .font(.system(size: 11))
+                                    .font(ClockerTheme.Fonts.caption)
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
                         }
                         .padding(.horizontal, 18)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, ClockerTheme.Spacing.rowVertical)
 
                         if index < mockEntries.count - 1 {
                             Divider()
@@ -80,7 +91,7 @@ struct HistoryPage: View {
                 .padding(.vertical, 6)
                 .allowsHitTesting(false)
             }
-            .frame(maxHeight: 240)
+            .frame(maxHeight: ClockerTheme.Size.historyMaxHeight)
         }
     }
 }

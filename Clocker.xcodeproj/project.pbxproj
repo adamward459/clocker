@@ -14,6 +14,7 @@
 		A00100010000000000000005 /* HistoryPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000005 /* HistoryPage.swift */; };
 		A00100010000000000000006 /* MenuRowButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000006 /* MenuRowButtonStyle.swift */; };
 		A00100010000000000000007 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000007 /* AppDelegate.swift */; };
+		A00100010000000000000008 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000008 /* Theme.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		A00200010000000000000005 /* HistoryPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryPage.swift; sourceTree = "<group>"; };
 		A00200010000000000000006 /* MenuRowButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuRowButtonStyle.swift; sourceTree = "<group>"; };
 		A00200010000000000000007 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A00200010000000000000008 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		A00200010000000000000013 /* Clocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clocker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -80,6 +82,7 @@
 				A00200010000000000000004 /* MainMenuPage.swift */,
 				A00200010000000000000005 /* HistoryPage.swift */,
 				A00200010000000000000006 /* MenuRowButtonStyle.swift */,
+				A00200010000000000000008 /* Theme.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -168,6 +171,7 @@
 				A00100010000000000000005 /* HistoryPage.swift in Sources */,
 				A00100010000000000000006 /* MenuRowButtonStyle.swift in Sources */,
 				A00100010000000000000007 /* AppDelegate.swift in Sources */,
+				A00100010000000000000008 /* Theme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
