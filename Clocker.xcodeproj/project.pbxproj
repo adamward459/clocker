@@ -84,14 +84,6 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		A00700010000000000000005 /* Support */ = {
-			isa = PBXGroup;
-			children = (
-				A00200010000000000000007 /* AppDelegate.swift */,
-			);
-			path = Support;
-			sourceTree = "<group>";
-		};
 		A00700010000000000000004 /* UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -102,6 +94,14 @@
 				A00200010000000000000008 /* Theme.swift */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000005 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000007 /* AppDelegate.swift */,
+			);
+			path = Support;
 			sourceTree = "<group>";
 		};
 		A00700010000000000000008 /* Products */ = {
@@ -234,6 +234,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = WN2DF2V3R4;
@@ -257,6 +258,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = WN2DF2V3R4;
