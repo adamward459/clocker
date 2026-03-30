@@ -13,6 +13,7 @@ final class ClockModel: ObservableObject {
     }
 
     private var timer: AnyCancellable?
+    private let timeWriter: TimeWriter
     private let formatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "HH:mm:ss"
@@ -20,6 +21,9 @@ final class ClockModel: ObservableObject {
     }()
 
     init() {
+        let expanded = NSString(string: Self.storagePath).expandingTildeInPath
+        timeWriter = TimeWriter(storageURL: URL(fileURLWithPath: expanded))
+
         currentTime = formatter.string(from: Date())
         timer = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
@@ -27,6 +31,7 @@ final class ClockModel: ObservableObject {
             .sink { [weak self] time in
                 self?.currentTime = time
                 self?.onTimeChange?(time)
+                self?.timeWriter.persist(time)
             }
     }
 }

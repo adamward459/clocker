@@ -15,6 +15,7 @@
 		A00100010000000000000006 /* MenuRowButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000006 /* MenuRowButtonStyle.swift */; };
 		A00100010000000000000007 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000007 /* AppDelegate.swift */; };
 		A00100010000000000000008 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000008 /* Theme.swift */; };
+		A00100010000000000000009 /* TimeWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000009 /* TimeWriter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		A00200010000000000000006 /* MenuRowButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuRowButtonStyle.swift; sourceTree = "<group>"; };
 		A00200010000000000000007 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A00200010000000000000008 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		A00200010000000000000009 /* TimeWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeWriter.swift; sourceTree = "<group>"; };
 		A00200010000000000000013 /* Clocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clocker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -53,6 +55,7 @@
 			children = (
 				A00200010000000000000001 /* ClockerApp.swift */,
 				A00700010000000000000003 /* Models */,
+				A00700010000000000000006 /* Services */,
 				A00700010000000000000005 /* Support */,
 				A00700010000000000000004 /* UI */,
 			);
@@ -65,6 +68,14 @@
 				A00200010000000000000002 /* ClockModel.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000006 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000009 /* TimeWriter.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		A00700010000000000000005 /* Support */ = {
@@ -172,6 +183,7 @@
 				A00100010000000000000006 /* MenuRowButtonStyle.swift in Sources */,
 				A00100010000000000000007 /* AppDelegate.swift in Sources */,
 				A00100010000000000000008 /* Theme.swift in Sources */,
+				A00100010000000000000009 /* TimeWriter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
