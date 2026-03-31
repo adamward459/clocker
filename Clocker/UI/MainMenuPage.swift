@@ -4,11 +4,31 @@ struct MainMenuPage: View {
     @EnvironmentObject var clockModel: ClockModel
     @EnvironmentObject var loginItemService: LoginItemService
     var navigateToHistory: () -> Void
+    var navigateToProjects: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
             // Stopwatch header
             VStack(spacing: 10) {
+                Button(action: navigateToProjects) {
+                    HStack(spacing: 4) {
+                        Text(clockModel.activeProjectName)
+                            .font(ClockerTheme.Fonts.caption)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 8, weight: .semibold))
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(ClockerTheme.Colors.hoverFill)
+                    )
+                }
+                .buttonStyle(.plain)
+
                 Text(clockModel.displayTime)
                     .font(ClockerTheme.Fonts.clockDisplay)
                     .monospacedDigit()
@@ -60,7 +80,7 @@ struct MainMenuPage: View {
                     }
                 }
 
-                // Storage info (read-only, opens in Finder on click)
+                // Storage
                 Button {
                     let url = clockModel.resolvedStorageURL
                     let fm = FileManager.default
@@ -142,9 +162,7 @@ struct MainMenuPage: View {
             .transition(.opacity)
         case .restored:
             statusText(label: "Restored today's record", systemImage: "checkmark.circle")
-        case .unavailable:
-            statusText(label: clockModel.isRunning ? "Tracking time" : "Ready to start", systemImage: clockModel.isRunning ? "timer" : "pause.circle")
-        case .idle:
+        case .unavailable, .idle:
             statusText(label: clockModel.isRunning ? "Tracking time" : "Ready to start", systemImage: clockModel.isRunning ? "timer" : "pause.circle")
         }
     }

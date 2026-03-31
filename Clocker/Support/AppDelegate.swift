@@ -22,8 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
 
         NSApp.applicationIconImage = NSImage(named: "Logo")
 
-        // Keep button title in sync with the clock
-        clockModel.onTimeChange = { [weak self] time in
+        clockModel.onTimeChange = { [weak self] _ in
             self?.updateStatusItemTitle()
         }
         clockModel.onRunningStateChange = { [weak self] _ in
@@ -31,7 +30,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         }
 
         popover = NSPopover()
-        popover.contentSize = NSSize(width: 280, height: 360)
         popover.behavior = .transient
         popover.animates = true
         popover.contentViewController = NSHostingController(
@@ -80,6 +78,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         button.image = NSImage(systemSymbolName: systemName, accessibilityDescription: nil)
         button.image?.isTemplate = true
         button.image?.size = NSSize(width: 12, height: 12)
-        button.title = " \(clockModel.displayTime)"
+        button.title = clockModel.menuBarTitle
     }
 }

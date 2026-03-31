@@ -3,6 +3,7 @@ import SwiftUI
 enum PopoverPage {
     case main
     case history
+    case projects
 }
 
 struct MenuBarPopover: View {
@@ -10,25 +11,25 @@ struct MenuBarPopover: View {
     @State private var currentPage: PopoverPage = .main
 
     var body: some View {
-        ZStack(alignment: .top) {
-            MainMenuPage(navigateToHistory: {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    currentPage = .history
-                }
-            })
-            .offset(x: currentPage == .main ? 0 : -280)
-            .opacity(currentPage == .main ? 1 : 0)
-
-            HistoryPage(navigateBack: {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    currentPage = .main
-                }
-            }, isVisible: currentPage == .history)
-            .frame(height: currentPage == .history ? nil : 0)
-            .offset(x: currentPage == .history ? 0 : 280)
-            .opacity(currentPage == .history ? 1 : 0)
+        Group {
+            switch currentPage {
+            case .main:
+                MainMenuPage(
+                    navigateToHistory: { currentPage = .history },
+                    navigateToProjects: { currentPage = .projects }
+                )
+            case .history:
+                HistoryPage(
+                    navigateBack: { currentPage = .main },
+                    isVisible: true
+                )
+            case .projects:
+                ProjectsPage(
+                    navigateBack: { currentPage = .main },
+                    isVisible: true
+                )
+            }
         }
         .frame(width: ClockerTheme.Size.popoverWidth)
-        .clipped()
     }
 }

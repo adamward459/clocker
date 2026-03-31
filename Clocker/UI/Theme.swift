@@ -14,7 +14,7 @@ enum ClockerTheme {
     // MARK: - Sizing
     enum Size {
         static let iconWidth: CGFloat = 20
-        static let popoverWidth: CGFloat = 280
+        static let popoverWidth: CGFloat = 320
         static let cornerRadius: CGFloat = 5
         static let historyMaxHeight: CGFloat = 240
     }
