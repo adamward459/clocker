@@ -21,6 +21,7 @@ final class AppUpdateService: ObservableObject {
             releasePrefix: "Clocker",
             provider: NormalizedGithubReleaseProvider()
         )
+        updater.skipCodeSignValidation = true
         updater.onDownloadSuccess = { [weak updater] in
             updater?.install()
         }
