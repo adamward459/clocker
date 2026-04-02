@@ -21,6 +21,8 @@
 		542E18CA2F7AF4FC000FF46B /* ClockProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000016 /* ClockProject.swift */; };
 		542E18CB2F7AF4FC000FF46B /* ProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000017 /* ProjectStore.swift */; };
 		542E18D02F7AF4FC000FF46B /* ProjectsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000020 /* ProjectsPage.swift */; };
+		542E18D12F7AF4FC000FF46B /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000018 /* AppUpdateService.swift */; };
+		542E18D22F7AF4FC000FF46B /* AppUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = A00D00010000000000000002 /* AppUpdater */; };
 		A00100010000000000000001 /* ClockerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000001 /* ClockerApp.swift */; };
 		A00100010000000000000002 /* ClockModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000002 /* ClockModel.swift */; };
 		A00100010000000000000003 /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000003 /* MenuBarPopover.swift */; };
@@ -35,6 +37,8 @@
 		A00100010000000000000012 /* ClockerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000012 /* ClockerTests.swift */; };
 		A00100010000000000000013 /* ClockProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000016 /* ClockProject.swift */; };
 		A00100010000000000000014 /* ProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000017 /* ProjectStore.swift */; };
+		A00100010000000000000015 /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000018 /* AppUpdateService.swift */; };
+		A00100010000000000000016 /* AppUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = A00D00010000000000000002 /* AppUpdater */; };
 		A00100010000000000000020 /* ProjectsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000020 /* ProjectsPage.swift */; };
 /* End PBXBuildFile section */
 
@@ -66,6 +70,7 @@
 		A00200010000000000000015 /* ClockerDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClockerDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A00200010000000000000016 /* ClockProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockProject.swift; sourceTree = "<group>"; };
 		A00200010000000000000017 /* ProjectStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectStore.swift; sourceTree = "<group>"; };
+		A00200010000000000000018 /* AppUpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateService.swift; sourceTree = "<group>"; };
 		A00200010000000000000020 /* ProjectsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectsPage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -74,6 +79,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A00100010000000000000016 /* AppUpdater in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,6 +87,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				542E18D22F7AF4FC000FF46B /* AppUpdater in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -145,6 +152,7 @@
 				A00200010000000000000017 /* ProjectStore.swift */,
 				A00200010000000000000009 /* TimeWriter.swift */,
 				A00200010000000000000011 /* LoginItemService.swift */,
+				A00200010000000000000018 /* AppUpdateService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -183,6 +191,9 @@
 			dependencies = (
 			);
 			name = Clocker;
+			packageProductDependencies = (
+				A00D00010000000000000002 /* AppUpdater */,
+			);
 			productName = Clocker;
 			productReference = A00200010000000000000013 /* Clocker.app */;
 			productType = "com.apple.product-type.application";
@@ -216,6 +227,9 @@
 			dependencies = (
 			);
 			name = ClockerDev;
+			packageProductDependencies = (
+				A00D00010000000000000002 /* AppUpdater */,
+			);
 			productName = ClockerDev;
 			productReference = A00200010000000000000015 /* ClockerDev.app */;
 			productType = "com.apple.product-type.application";
@@ -252,6 +266,9 @@
 			);
 			mainGroup = A00700010000000000000001;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A00D00010000000000000001 /* XCRemoteSwiftPackageReference "AppUpdater" */,
+			);
 			productRefGroup = A00700010000000000000008 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -298,6 +315,7 @@
 				A00100010000000000000008 /* Theme.swift in Sources */,
 				A00100010000000000000009 /* TimeWriter.swift in Sources */,
 				A00100010000000000000011 /* LoginItemService.swift in Sources */,
+				A00100010000000000000015 /* AppUpdateService.swift in Sources */,
 				A00100010000000000000013 /* ClockProject.swift in Sources */,
 				A00100010000000000000014 /* ProjectStore.swift in Sources */,
 			);
@@ -318,6 +336,7 @@
 				542E18C62F7AF4FC000FF46B /* Theme.swift in Sources */,
 				542E18C72F7AF4FC000FF46B /* TimeWriter.swift in Sources */,
 				542E18C82F7AF4FC000FF46B /* LoginItemService.swift in Sources */,
+				542E18D12F7AF4FC000FF46B /* AppUpdateService.swift in Sources */,
 				542E18CA2F7AF4FC000FF46B /* ClockProject.swift in Sources */,
 				542E18CB2F7AF4FC000FF46B /* ProjectStore.swift in Sources */,
 			);
@@ -384,6 +403,7 @@
 				DEVELOPMENT_TEAM = BB3U5ED794;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_KEY_CFBundleDisplayName = Clocker;
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -391,6 +411,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -407,6 +428,7 @@
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = BB3U5ED794;
 				GENERATE_INFOPLIST_FILE = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_KEY_CFBundleDisplayName = Clocker;
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -414,6 +436,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -472,6 +495,7 @@
 				DEVELOPMENT_TEAM = BB3U5ED794;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_KEY_CFBundleDisplayName = ClockerDev;
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -479,6 +503,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -495,6 +520,7 @@
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = BB3U5ED794;
 				GENERATE_INFOPLIST_FILE = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_KEY_CFBundleDisplayName = ClockerDev;
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -502,6 +528,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -549,6 +576,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A00D00010000000000000001 /* XCRemoteSwiftPackageReference "AppUpdater" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/s1ntoneli/AppUpdater.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.9;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A00D00010000000000000002 /* AppUpdater */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A00D00010000000000000001 /* XCRemoteSwiftPackageReference "AppUpdater" */;
+			productName = AppUpdater;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A00400010000000000000001 /* Project object */;
 }

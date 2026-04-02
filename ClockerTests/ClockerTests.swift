@@ -113,6 +113,35 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(model.activeProjectID, ClockProject.defaultID)
     }
 
+    func testAppUpdateServiceNormalizesGitHubReleaseTagsAndAssetNames() throws {
+        let payload = """
+        [
+          {
+            "tag_name": "v1.0.0",
+            "prerelease": false,
+            "assets": [
+              {
+                "name": "Clocker-v1.0.0.zip",
+                "browser_download_url": "https://example.com/Clocker-v1.0.0.zip",
+                "content_type": "application/zip"
+              }
+            ],
+            "body": "Release notes",
+            "name": "v1.0.0",
+            "html_url": "https://example.com/releases/tag/v1.0.0"
+          }
+        ]
+        """.data(using: .utf8)!
+
+        let normalized = GitHubReleaseNormalizer.normalizeReleasePayload(payload)
+        let json = try XCTUnwrap(String(data: normalized, encoding: .utf8))
+
+        XCTAssertTrue(json.contains(#""tag_name":"1.0.0""#))
+        XCTAssertTrue(json.contains(#""name":"Clocker-1.0.0.zip""#))
+        XCTAssertFalse(json.contains(#""tag_name":"v1.0.0""#))
+        XCTAssertFalse(json.contains(#""name":"Clocker-v1.0.0.zip""#))
+    }
+
     private func todayFileURL() -> URL {
         ClockModel.currentDayFileURL(storageURL: tempDirectory)
     }

@@ -23,6 +23,7 @@ Built with SwiftUI and AppKit. Requires macOS 13+.
 - **Auto-restore** — on launch, Clocker reads today's log file and restores the elapsed time for the active project
 - **History view** — browse all recorded days grouped by project, with file size and modification date
 - **Open at Login** — toggle launch-at-login via `SMAppService` (no helper app needed)
+- **Automatic updates** — GitHub Releases integration via AppUpdater for signed release builds
 - **Open storage folder** — quick access to your time logs from the popover menu
 - **Reset** — clear today's timer and delete the day's record for the active project
 - **Themed UI** — consistent design system with hover states, smooth animations, and a compact popover layout
@@ -83,7 +84,8 @@ Clocker/
 ├── Services/
 │   ├── TimeWriter.swift             # Background file I/O on a serial queue
 │   ├── ProjectStore.swift           # Project list and active state persistence
-│   └── LoginItemService.swift       # SMAppService wrapper for launch-at-login
+│   ├── LoginItemService.swift       # SMAppService wrapper for launch-at-login
+│   └── AppUpdateService.swift       # AppUpdater wrapper for GitHub Releases updates
 └── UI/
     ├── MenuBarPopover.swift          # Page navigation (main / history / projects)
     ├── MainMenuPage.swift            # Timer display, start/stop/reset, menu items
@@ -135,6 +137,15 @@ xcodebuild -project Clocker.xcodeproj -scheme Clocker -configuration Debug build
 - **Restore feedback** — a brief delay before showing the "Restoring" spinner avoids flicker on fast restores
 - **Project ordering** — active project first, then by most recently used, then alphabetical
 - **Menu bar title** — project names longer than 8 characters are truncated with an ellipsis to keep the menu bar compact
+
+## Releases & Updates
+
+- AppUpdater checks GitHub Releases for the `adamward459/clocker` repository
+- Release assets must be named with the app prefix and semantic version, for example `Clocker-1.3.0.zip`
+- Release builds must be signed and notarized so AppUpdater can validate the downloaded bundle before installation
+- Clocker is intentionally kept non-sandboxed, which matches AppUpdater's current requirements
+- The updater normalizes GitHub `v1.0.0` release tags and matching asset names at runtime, so existing `v`-prefixed release conventions still work
+- The update flow is available from the popover as "Check for Updates"
 
 ## Testing
 

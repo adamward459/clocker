@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     private var popover: NSPopover!
     private let clockModel = ClockModel()
     let loginItemService = LoginItemService()
+    let appUpdateService = AppUpdateService()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -36,6 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
             rootView: MenuBarPopover()
                 .environmentObject(clockModel)
                 .environmentObject(loginItemService)
+                .environmentObject(appUpdateService)
         )
 
         clockModel.restoreTodayRecordIfAvailable()

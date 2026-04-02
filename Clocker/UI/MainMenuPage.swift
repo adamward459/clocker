@@ -3,6 +3,7 @@ import SwiftUI
 struct MainMenuPage: View {
     @EnvironmentObject var clockModel: ClockModel
     @EnvironmentObject var loginItemService: LoginItemService
+    @EnvironmentObject var appUpdateService: AppUpdateService
     var navigateToHistory: () -> Void
     var navigateToProjects: () -> Void
 
@@ -122,6 +123,29 @@ struct MainMenuPage: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(MenuRowButtonStyle())
+
+                if appUpdateService.isAvailable {
+                    Button {
+                        appUpdateService.checkForUpdates()
+                    } label: {
+                        HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
+                            MenuIcon(systemName: "arrow.down.circle")
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Check for Updates")
+                                    .font(ClockerTheme.Fonts.rowLabel)
+                                Text("GitHub Releases")
+                                    .font(ClockerTheme.Fonts.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.up.forward.square")
+                                .font(ClockerTheme.Fonts.chevron)
+                                .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(MenuRowButtonStyle())
+                }
 
                 Divider()
                     .padding(.horizontal, 18)
