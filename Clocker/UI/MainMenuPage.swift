@@ -6,199 +6,191 @@ struct MainMenuPage: View {
     @EnvironmentObject var appUpdateService: AppUpdateService
     var navigateToHistory: () -> Void
     var navigateToProjects: () -> Void
+    @State private var visibleToast: UpdateToast?
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Stopwatch header
-            VStack(spacing: 10) {
-                Button(action: navigateToProjects) {
-                    HStack(spacing: 4) {
-                        Text(clockModel.activeProjectName)
-                            .font(ClockerTheme.Fonts.caption)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 8, weight: .semibold))
-                    }
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(
-                        RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .fill(ClockerTheme.Colors.hoverFill)
-                    )
-                }
-                .buttonStyle(.plain)
-
-                Text(clockModel.displayTime)
-                    .font(ClockerTheme.Fonts.clockDisplay)
-                    .monospacedDigit()
-
-                statusLine
-
-                HStack(spacing: 12) {
-                    if clockModel.isRunning {
-                        Button("Stop") { clockModel.stop() }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                    } else {
-                        Button("Start") { clockModel.start() }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
-                    }
-                    if !clockModel.isRunning && clockModel.displayTime != "00:00" {
-                        Button("Reset") { clockModel.reset() }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                    }
-                }
-            }
-            .padding(.top, 24)
-            .padding(.bottom, 16)
-            .frame(maxWidth: .infinity)
-
-            Divider()
-                .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
-
-            VStack(spacing: 2) {
-                // Open at Login
-                HoverRow {
-                    HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
-                        MenuIcon(systemName: "power")
-                        Text("Open at Login")
-                            .font(ClockerTheme.Fonts.rowLabel)
-                        Spacer()
-                        Toggle(
-                            "",
-                            isOn: Binding(
-                                get: { loginItemService.isEnabled },
-                                set: { loginItemService.setEnabled($0) }
-                            )
-                        )
-                            .toggleStyle(.switch)
-                            .controlSize(.mini)
-                            .labelsHidden()
-                    }
-                }
-
-                // Storage
-                Button {
-                    let url = clockModel.resolvedStorageURL
-                    let fm = FileManager.default
-                    if !fm.fileExists(atPath: url.path) {
-                        try? fm.createDirectory(at: url, withIntermediateDirectories: true)
-                    }
-                    NSWorkspace.shared.open(url)
-                } label: {
-                    HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
-                        MenuIcon(systemName: "folder")
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("Storage")
-                                .font(ClockerTheme.Fonts.rowLabel)
-                            Text(clockModel.resolvedStorageURL.path.replacingOccurrences(of: NSHomeDirectory(), with: "~"))
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                // Stopwatch header
+                VStack(spacing: 10) {
+                    Button(action: navigateToProjects) {
+                        HStack(spacing: 4) {
+                            Text(clockModel.activeProjectName)
                                 .font(ClockerTheme.Fonts.caption)
-                                .foregroundStyle(.secondary)
                                 .lineLimit(1)
-                                .truncationMode(.middle)
+                                .truncationMode(.tail)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 8, weight: .semibold))
                         }
-                        Spacer()
-                        Image(systemName: "arrow.up.forward.square")
-                            .font(ClockerTheme.Fonts.chevron)
-                            .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(MenuRowButtonStyle())
-
-                // History
-                Button(action: navigateToHistory) {
-                    HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
-                        MenuIcon(systemName: "clock.arrow.circlepath")
-                        Text("History")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(ClockerTheme.Fonts.chevron)
-                            .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(MenuRowButtonStyle())
-
-                if appUpdateService.isAvailable {
-                    Button {
-                        appUpdateService.checkForUpdates()
-                    } label: {
-                        HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
-                            MenuIcon(systemName: appUpdateService.status.symbolName)
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(appUpdateService.status.title)
-                                    .font(ClockerTheme.Fonts.rowLabel)
-                                Text(appUpdateService.status.subtitle)
-                                    .font(ClockerTheme.Fonts.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
-                                    .truncationMode(.tail)
-                            }
-                            Spacer()
-                            if let progress = appUpdateService.status.progress {
-                                ProgressView(value: progress)
-                                    .frame(width: 44)
-                            } else if appUpdateService.status.isBusy {
-                                ProgressView()
-                                    .controlSize(.small)
-                            } else {
-                                Image(systemName: "chevron.right")
-                                    .font(ClockerTheme.Fonts.chevron)
-                                    .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
-                            }
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, ClockerTheme.Spacing.rowOuterPadding)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
                         .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
                                 .fill(ClockerTheme.Colors.hoverFill)
                         )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
-                        )
                     }
-                    .buttonStyle(MenuRowButtonStyle())
-                    .disabled(appUpdateService.status.isBusy)
+                    .buttonStyle(.plain)
+
+                    Text(clockModel.displayTime)
+                        .font(ClockerTheme.Fonts.clockDisplay)
+                        .monospacedDigit()
+
+                    statusLine
+
+                    HStack(spacing: 12) {
+                        if clockModel.isRunning {
+                            Button("Stop") { clockModel.stop() }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                        } else {
+                            Button("Start") { clockModel.start() }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.small)
+                        }
+                        if !clockModel.isRunning && clockModel.displayTime != "00:00" {
+                            Button("Reset") { clockModel.reset() }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                        }
+                    }
                 }
+                .padding(.top, 24)
+                .padding(.bottom, 16)
+                .frame(maxWidth: .infinity)
 
                 Divider()
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
+
+                VStack(spacing: 2) {
+                // Open at Login
+                    HoverRow {
+                        HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
+                            MenuIcon(systemName: "power")
+                            Text("Open at Login")
+                                .font(ClockerTheme.Fonts.rowLabel)
+                            Spacer()
+                            Toggle(
+                                "",
+                                isOn: Binding(
+                                    get: { loginItemService.isEnabled },
+                                    set: { loginItemService.setEnabled($0) }
+                                )
+                            )
+                                .toggleStyle(.switch)
+                                .controlSize(.mini)
+                                .labelsHidden()
+                        }
+                    }
+
+                // Storage
+                    Button {
+                        let url = clockModel.resolvedStorageURL
+                        let fm = FileManager.default
+                        if !fm.fileExists(atPath: url.path) {
+                            try? fm.createDirectory(at: url, withIntermediateDirectories: true)
+                        }
+                        NSWorkspace.shared.open(url)
+                    } label: {
+                        HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
+                            MenuIcon(systemName: "folder")
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Storage")
+                                    .font(ClockerTheme.Fonts.rowLabel)
+                                Text(clockModel.resolvedStorageURL.path.replacingOccurrences(of: NSHomeDirectory(), with: "~"))
+                                    .font(ClockerTheme.Fonts.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.up.forward.square")
+                                .font(ClockerTheme.Fonts.chevron)
+                                .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(MenuRowButtonStyle())
+
+                // History
+                    Button(action: navigateToHistory) {
+                        HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
+                            MenuIcon(systemName: "clock.arrow.circlepath")
+                            Text("History")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(ClockerTheme.Fonts.chevron)
+                                .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(MenuRowButtonStyle())
+
+                    if appUpdateService.isAvailable {
+                        Button {
+                            appUpdateService.checkForUpdates()
+                        } label: {
+                            HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
+                                MenuIcon(systemName: appUpdateService.status.symbolName)
+                                Text(appUpdateService.status.title)
+                                    .font(ClockerTheme.Fonts.rowLabel)
+                                Spacer()
+                                if let progress = appUpdateService.status.progress {
+                                    ProgressView(value: progress)
+                                        .frame(width: 44)
+                                } else if appUpdateService.status.isBusy {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                } else {
+                                    Image(systemName: "chevron.right")
+                                        .font(ClockerTheme.Fonts.chevron)
+                                        .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(MenuRowButtonStyle())
+                        .disabled(appUpdateService.status.isBusy)
+                    }
+
+                    Divider()
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 2)
 
                 // Quit
-                Button {
-                    NSApplication.shared.terminate(nil)
-                } label: {
-                    HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
-                        MenuIcon(systemName: "xmark.circle")
-                        Text("Quit Clocker")
-                        Spacer()
-                        Text("⌘Q")
-                            .font(ClockerTheme.Fonts.shortcut)
-                            .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
+                    Button {
+                        NSApplication.shared.terminate(nil)
+                    } label: {
+                        HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
+                            MenuIcon(systemName: "xmark.circle")
+                            Text("Quit Clocker")
+                            Spacer()
+                            Text("⌘Q")
+                                .font(ClockerTheme.Fonts.shortcut)
+                                .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
+                        }
+                        .contentShape(Rectangle())
                     }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(MenuRowButtonStyle())
-                .keyboardShortcut("q")
+                    .buttonStyle(MenuRowButtonStyle())
+                    .keyboardShortcut("q")
 
-                HStack {
-                    Spacer()
-                    Text(appVersionLabel)
-                        .font(ClockerTheme.Fonts.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
+                    HStack {
+                        Spacer()
+                        Text(appVersionLabel)
+                            .font(ClockerTheme.Fonts.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .padding(.horizontal, ClockerTheme.Spacing.rowOuterPadding)
+                    .padding(.top, 2)
                 }
-                .padding(.horizontal, ClockerTheme.Spacing.rowOuterPadding)
-                .padding(.top, 2)
+                .padding(.vertical, ClockerTheme.Spacing.sectionGap)
             }
-            .padding(.vertical, ClockerTheme.Spacing.sectionGap)
+            if let visibleToast {
+                UpdateToastView(toast: visibleToast)
+                    .padding(.bottom, 14)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
         .alert(item: $appUpdateService.notice) { notice in
             Alert(
@@ -206,6 +198,19 @@ struct MainMenuPage: View {
                 message: Text(notice.message),
                 dismissButton: .default(Text("OK"))
             )
+        }
+        .onReceive(appUpdateService.$toast.compactMap { $0 }) { toast in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                visibleToast = toast
+            }
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(2))
+                guard visibleToast?.id == toast.id else { return }
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    visibleToast = nil
+                }
+                appUpdateService.toast = nil
+            }
         }
     }
 
@@ -276,5 +281,34 @@ struct HoverRow<Content: View>: View {
                 isHovered = hovering
             }
             .animation(.easeInOut(duration: 0.15), value: isHovered)
+    }
+}
+
+struct UpdateToastView: View {
+    let toast: UpdateToast
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: toast.symbolName)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.green)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(toast.title)
+                    .font(ClockerTheme.Fonts.rowLabel)
+                Text(toast.message)
+                    .font(ClockerTheme.Fonts.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: ClockerTheme.Size.popoverWidth - 24)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.12), radius: 12, y: 4)
     }
 }

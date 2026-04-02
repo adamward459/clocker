@@ -11,6 +11,7 @@ final class AppUpdateService: ObservableObject {
     @Published private(set) var status: UpdateStatus = .idle
     @Published private(set) var lastError: Error?
     @Published var notice: UpdateNotice?
+    @Published var toast: UpdateToast?
 
     var isAvailable: Bool {
         updater != nil
@@ -70,16 +71,36 @@ final class AppUpdateService: ObservableObject {
         status = .checking
         lastError = nil
         notice = nil
+        toast = nil
         isManualCheckInProgress = true
-        updater.check(success: { [weak self, weak updater] in
-            Task { @MainActor in
-                self?.status = .installing
-                self?.isManualCheckInProgress = false
+        Task {
+            do {
+                try await updater.checkThrowing()
+                status = .installing
+                isManualCheckInProgress = false
+                updater.install()
+            } catch AUError.cancelled {
+                handleNoUpdateAvailable()
+            } catch where error.isCancelled {
+                handleNoUpdateAvailable()
+            } catch AppUpdater.Error.noValidUpdate {
+                handleNoUpdateAvailable()
+            } catch {
+                handleFailure(error)
             }
-            updater?.install()
-        }, fail: { [weak self] error in
-            self?.handleCheckFailure(error)
-        })
+        }
+    }
+
+    private func handleFailure(_ error: Error) {
+        if Self.shouldTreatAsNoUpdate(error) {
+            handleNoUpdateAvailable()
+            return
+        }
+
+        isManualCheckInProgress = false
+        lastError = error
+        status = .failed(message: error.localizedDescription)
+        notice = .failed(message: error.localizedDescription)
     }
 
     private func handleStateNotice(for state: AppUpdater.UpdateState) {
@@ -87,43 +108,37 @@ final class AppUpdateService: ObservableObject {
 
         switch state {
         case .newVersionDetected:
-            notice = .updateAvailable
+            status = .downloading(fraction: 0)
         case .downloaded:
-            notice = .downloaded
+            status = .installing
         case .downloading, .none:
             break
         }
     }
 
-    private func handleCheckFailure(_ error: Error) {
-        handleFailure(error)
+    private func handleNoUpdateAvailable() {
+        isManualCheckInProgress = false
+        lastError = nil
+        notice = nil
+        status = .idle
+        toast = .upToDate
     }
 
-    private func handleFailure(_ error: Error) {
-        isManualCheckInProgress = false
-
-        if error.isCancelled {
-            return
+    nonisolated static func shouldTreatAsNoUpdate(_ error: Error) -> Bool {
+        if case AUError.cancelled = error {
+            return true
         }
-
-        lastError = error
         if case AppUpdater.Error.noValidUpdate = error {
-            status = .upToDate
-            notice = .upToDate
-        } else {
-            status = .failed(message: error.localizedDescription)
-            notice = .failed(message: error.localizedDescription)
+            return true
         }
+        return error.isCancelled
     }
 }
 
 enum UpdateStatus: Equatable {
     case idle
     case checking
-    case upToDate
-    case updateAvailable
     case downloading(fraction: Double)
-    case downloaded
     case installing
     case failed(message: String)
 
@@ -132,28 +147,22 @@ enum UpdateStatus: Equatable {
         case .none:
             self = .idle
         case .newVersionDetected:
-            self = .updateAvailable
+            self = .checking
         case .downloading(_, _, let fraction):
             self = .downloading(fraction: fraction)
         case .downloaded:
-            self = .downloaded
+            self = .installing
         }
     }
 
     var title: String {
         switch self {
         case .idle:
-            return "Updates"
+            return "Check for Updates"
         case .checking:
             return "Checking for updates"
-        case .upToDate:
-            return "Up to date"
-        case .updateAvailable:
-            return "Update available"
         case .downloading:
             return "Downloading update"
-        case .downloaded:
-            return "Downloaded"
         case .installing:
             return "Installing update"
         case .failed:
@@ -164,19 +173,13 @@ enum UpdateStatus: Equatable {
     var subtitle: String {
         switch self {
         case .idle:
-            return "Check GitHub Releases for the latest build."
+            return "Look for the latest build on GitHub Releases."
         case .checking:
             return "Contacting GitHub Releases."
-        case .upToDate:
-            return "You are on the latest published version."
-        case .updateAvailable:
-            return "The release is ready to download."
         case .downloading(let fraction):
             return "\(Int(fraction * 100))% downloaded."
-        case .downloaded:
-            return "Installing the update now."
         case .installing:
-            return "Relaunching Clocker."
+            return "Replacing the app and relaunching."
         case .failed(let message):
             return message
         }
@@ -188,14 +191,8 @@ enum UpdateStatus: Equatable {
             return "arrow.down.circle"
         case .checking:
             return "arrow.triangle.2.circlepath"
-        case .upToDate:
-            return "checkmark.seal"
-        case .updateAvailable:
-            return "arrow.down.circle.fill"
         case .downloading:
             return "arrow.down.circle.fill"
-        case .downloaded:
-            return "checkmark.circle.fill"
         case .installing:
             return "arrow.triangle.2.circlepath"
         case .failed:
@@ -205,9 +202,9 @@ enum UpdateStatus: Equatable {
 
     var isBusy: Bool {
         switch self {
-        case .checking, .downloading, .downloaded, .installing:
+        case .checking, .downloading, .installing:
             return true
-        case .idle, .upToDate, .updateAvailable, .failed:
+        case .idle, .failed:
             return false
         }
     }
@@ -221,20 +218,11 @@ enum UpdateStatus: Equatable {
 }
 
 enum UpdateNotice: Identifiable {
-    case updateAvailable
-    case downloaded
-    case upToDate
     case missingVersionMetadata
     case failed(message: String)
 
     var id: String {
         switch self {
-        case .updateAvailable:
-            return "updateAvailable"
-        case .downloaded:
-            return "downloaded"
-        case .upToDate:
-            return "upToDate"
         case .missingVersionMetadata:
             return "missingVersionMetadata"
         case .failed(let message):
@@ -244,12 +232,6 @@ enum UpdateNotice: Identifiable {
 
     var title: String {
         switch self {
-        case .updateAvailable:
-            return "Update Available"
-        case .downloaded:
-            return "Update Downloaded"
-        case .upToDate:
-            return "No Updates Found"
         case .missingVersionMetadata:
             return "Updates Disabled"
         case .failed:
@@ -259,17 +241,31 @@ enum UpdateNotice: Identifiable {
 
     var message: String {
         switch self {
-        case .updateAvailable:
-            return "A newer version was found and will download in the background."
-        case .downloaded:
-            return "The update has finished downloading and will install now."
-        case .upToDate:
-            return "Clocker is already on the latest published version."
         case .missingVersionMetadata:
             return "Clocker could not read its version metadata, so updates are disabled."
         case .failed(let message):
             return message
         }
+    }
+}
+
+enum UpdateToast: Identifiable {
+    case upToDate
+
+    var id: String {
+        "upToDate"
+    }
+
+    var title: String {
+        "No updates found"
+    }
+
+    var message: String {
+        "You already have the latest version of Clocker."
+    }
+
+    var symbolName: String {
+        "checkmark.seal.fill"
     }
 }
 

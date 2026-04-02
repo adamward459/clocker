@@ -1,5 +1,6 @@
 import XCTest
 @testable import Clocker
+import AppUpdater
 
 final class ClockerTests: XCTestCase {
     private var tempDirectory: URL!
@@ -140,6 +141,12 @@ final class ClockerTests: XCTestCase {
         XCTAssertTrue(json.contains(#""name":"Clocker-1.0.0.zip""#))
         XCTAssertFalse(json.contains(#""tag_name":"v1.0.0""#))
         XCTAssertFalse(json.contains(#""name":"Clocker-v1.0.0.zip""#))
+    }
+
+    func testAppUpdateServiceTreatsCancelledAsNoUpdate() {
+        XCTAssertTrue(AppUpdateService.shouldTreatAsNoUpdate(AUError.cancelled))
+        XCTAssertTrue(AppUpdateService.shouldTreatAsNoUpdate(AppUpdater.Error.noValidUpdate))
+        XCTAssertFalse(AppUpdateService.shouldTreatAsNoUpdate(AppUpdater.Error.downloadFailed))
     }
 
     private func todayFileURL() -> URL {
