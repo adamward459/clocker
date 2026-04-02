@@ -121,6 +121,16 @@ Clocker/
 3. Build and run (⌘R)
 4. Look for the play icon in your menu bar
 
+### Troubleshooting Unsigned Builds
+
+If you built Clocker locally and macOS shows a security warning because the app is unsigned or quarantined, you can clear the quarantine attribute from the app bundle before opening it:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Clocker.app
+```
+
+If you're testing directly from Xcode-derived build output, point the command at that `.app` bundle instead. This is a local workaround for trusted builds only; release distribution still needs proper code signing and notarization.
+
 ### Command-Line Build
 
 ```bash
