@@ -167,6 +167,16 @@ struct MainMenuPage: View {
                 }
                 .buttonStyle(MenuRowButtonStyle())
                 .keyboardShortcut("q")
+
+                HStack {
+                    Spacer()
+                    Text(appVersionLabel)
+                        .font(ClockerTheme.Fonts.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .padding(.horizontal, ClockerTheme.Spacing.rowOuterPadding)
+                .padding(.top, 2)
             }
             .padding(.vertical, ClockerTheme.Spacing.sectionGap)
         }
@@ -199,6 +209,13 @@ struct MainMenuPage: View {
                 .font(ClockerTheme.Fonts.caption)
         }
         .foregroundStyle(.secondary)
+    }
+
+    private var appVersionLabel: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+        guard let build, !build.isEmpty else { return "Version \(version)" }
+        return "Version \(version) (\(build))"
     }
 }
 
