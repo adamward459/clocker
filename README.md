@@ -14,6 +14,14 @@ Built with SwiftUI and AppKit. Requires macOS 13+.
 
 ---
 
+## Preview
+
+<p align="center">
+  <img src="docs/images/clocker-popover.jpg" alt="Clocker popover showing the timer, project switcher, and menu actions" width="560">
+</p>
+
+The screenshot above shows the current popover layout, including the running timer, project selector, restore state, storage shortcut, history entry point, and login toggle.
+
 ## Features
 
 - **Menu bar timer** — displays a live `MM:SS` (or `H:MM:SS`) stopwatch directly in the macOS menu bar with play/pause icon
