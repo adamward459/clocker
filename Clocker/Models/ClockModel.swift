@@ -75,6 +75,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
     private var elapsedSeconds: Int = 0
     private var projectElapsedSeconds: [String: Int] = [:]
     private var restoreFeedbackWorkItem: DispatchWorkItem?
+    private var trackingDate: String = ClockModel.todayString()
 
     convenience init() {
         self.init(
@@ -138,6 +139,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
 
                 self.elapsedSeconds = restoredSeconds
                 self.projectElapsedSeconds[self.activeProjectID] = restoredSeconds
+                self.trackingDate = Self.todayString()
                 self.displayTime = Self.formatElapsed(restoredSeconds)
                 self.onTimeChange?(self.displayTime)
                 self.markActiveProjectUsed()
@@ -148,12 +150,14 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
 
     func start() {
         guard !isRunning else { return }
+        handleDayChangeIfNeeded()
         isRunning = true
         onRunningStateChange?(true)
         timer = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 guard let self else { return }
+                self.handleDayChangeIfNeeded()
                 self.elapsedSeconds += 1
                 self.projectElapsedSeconds[self.activeProjectID] = self.elapsedSeconds
                 let formatted = Self.formatElapsed(self.elapsedSeconds)
@@ -175,6 +179,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         timeWriter.clearTodayRecord(projectID: activeProjectID)
         elapsedSeconds = 0
         projectElapsedSeconds[activeProjectID] = 0
+        trackingDate = Self.todayString()
         displayTime = "00:00"
         onTimeChange?(displayTime)
         onRunningStateChange?(false)
@@ -291,6 +296,22 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         } else {
             return String(format: "%02d:%02d", m, s)
         }
+    }
+
+    private func handleDayChangeIfNeeded() {
+        let today = Self.todayString()
+        guard today != trackingDate else { return }
+        trackingDate = today
+        elapsedSeconds = 0
+        projectElapsedSeconds[activeProjectID] = 0
+        displayTime = Self.formatElapsed(0)
+        onTimeChange?(displayTime)
+    }
+
+    static func todayString(date: Date = Date()) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        return fmt.string(from: date)
     }
 
     private func loadElapsedSeconds(for projectID: String) -> Int? {
