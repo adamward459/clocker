@@ -28,7 +28,19 @@ final class AppUpdateService: ObservableObject {
     }
 
     func checkForUpdates() {
-        updater?.check()
+        guard let updater else { return }
+
+        updater.check(
+            success: { [weak updater] in
+                updater?.install()
+            },
+            fail: { [weak updater] error in
+                guard !error.isCancelled else { return }
+                Task { @MainActor in
+                    updater?.lastError = error
+                }
+            }
+        )
     }
 }
 
