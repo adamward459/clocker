@@ -13,7 +13,7 @@ description: Create annotated Git release tags, publish the matching GitHub Rele
 4. Write an annotated tag message with a short title and a concise feature summary.
 5. Create or update the tag on the current commit.
 6. Push the tag to `origin` and verify the remote reference.
-7. Publish the matching GitHub Release immediately after tag creation, using `gh release create` or `gh release upload` to attach a `.dmg` built from `Clocker.app`.
+7. Publish the matching GitHub Release immediately after tag creation, using `gh release create` or `gh release upload` to attach a `.zip` built from `Clocker.app`.
 
 ## Tag Message
 
@@ -28,7 +28,7 @@ description: Create annotated Git release tags, publish the matching GitHub Rele
 - Mention the built `Clocker.app` bundle when the release follows a successful build.
 - Avoid long paragraphs, wrapped prose, and implementation detail dumps.
 - Always publish the GitHub Release after the tag is created and pushed, unless the user explicitly asks to skip release publication.
-- For GitHub Releases, prefer a `.dmg` built from `Clocker.app`, uploaded with `gh release create` or `gh release upload`.
+- For GitHub Releases, prefer a `.zip` built from `Clocker.app`, uploaded with `gh release create` or `gh release upload`.
 - If the tag already exists and needs a better message, update it with `git tag -fa`.
 
 ## Defaults
@@ -36,4 +36,4 @@ description: Create annotated Git release tags, publish the matching GitHub Rele
 - Use annotated tags by default.
 - Use semantic version names like `vX.Y.Z` unless the user asks for another pattern.
 - Verify the tag points at `HEAD` before finishing.
-- Prefer GitHub Releases when the user wants the app bundle attached for download, and prefer `.dmg` over `.zip`.
+- Prefer GitHub Releases when the user wants the app bundle attached for download, and prefer `.zip` over `.dmg`.
