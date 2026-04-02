@@ -1,21 +1,36 @@
 import AppUpdater
 import Combine
 import Foundation
-import Version
 
 @MainActor
 final class AppUpdateService: ObservableObject {
     private let updater: AppUpdater?
     private var stateObservation: AnyCancellable?
+    private var isManualCheckInProgress = false
 
     @Published private(set) var status: UpdateStatus = .idle
     @Published private(set) var lastError: Error?
+    @Published var notice: UpdateNotice?
 
     var isAvailable: Bool {
         updater != nil
     }
 
     init() {
+        let hasBundleVersionMetadata = {
+            guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
+                return false
+            }
+            return !version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }()
+
+        guard hasBundleVersionMetadata else {
+            updater = nil
+            status = .failed(message: "App version metadata is missing.")
+            notice = .missingVersionMetadata
+            return
+        }
+
         guard Bundle.main.bundleIdentifier?.hasSuffix(".dev") != true else {
             updater = nil
             return
@@ -31,7 +46,8 @@ final class AppUpdateService: ObservableObject {
         updater.skipCodeSignValidation = true
         updater.onDownloadSuccess = { [weak self, weak updater] in
             Task { @MainActor in
-                self?.status = .installing(version: self?.currentStatusVersion ?? "latest")
+                self?.status = .installing
+                self?.isManualCheckInProgress = false
             }
             updater?.install()
         }
@@ -43,6 +59,7 @@ final class AppUpdateService: ObservableObject {
         stateObservation = updater.$state.sink { [weak self] state in
             Task { @MainActor in
                 self?.status = UpdateStatus(state: state)
+                self?.handleStateNotice(for: state)
             }
         }
         status = .idle
@@ -52,9 +69,12 @@ final class AppUpdateService: ObservableObject {
         guard let updater else { return }
         status = .checking
         lastError = nil
+        notice = nil
+        isManualCheckInProgress = true
         updater.check(success: { [weak self, weak updater] in
             Task { @MainActor in
-                self?.status = .installing(version: self?.currentStatusVersion ?? "latest")
+                self?.status = .installing
+                self?.isManualCheckInProgress = false
             }
             updater?.install()
         }, fail: { [weak self] error in
@@ -62,11 +82,26 @@ final class AppUpdateService: ObservableObject {
         })
     }
 
+    private func handleStateNotice(for state: AppUpdater.UpdateState) {
+        guard isManualCheckInProgress else { return }
+
+        switch state {
+        case .newVersionDetected:
+            notice = .updateAvailable
+        case .downloaded:
+            notice = .downloaded
+        case .downloading, .none:
+            break
+        }
+    }
+
     private func handleCheckFailure(_ error: Error) {
         handleFailure(error)
     }
 
     private func handleFailure(_ error: Error) {
+        isManualCheckInProgress = false
+
         if error.isCancelled {
             return
         }
@@ -74,20 +109,10 @@ final class AppUpdateService: ObservableObject {
         lastError = error
         if case AppUpdater.Error.noValidUpdate = error {
             status = .upToDate
+            notice = .upToDate
         } else {
             status = .failed(message: error.localizedDescription)
-        }
-    }
-
-    private var currentStatusVersion: String {
-        switch status {
-        case .updateAvailable(let version),
-                .downloading(let version, _),
-                .downloaded(let version),
-                .installing(let version):
-            return version
-        case .idle, .checking, .upToDate, .failed:
-            return Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "latest"
+            notice = .failed(message: error.localizedDescription)
         }
     }
 }
@@ -96,22 +121,22 @@ enum UpdateStatus: Equatable {
     case idle
     case checking
     case upToDate
-    case updateAvailable(version: String)
-    case downloading(version: String, fraction: Double)
-    case downloaded(version: String)
-    case installing(version: String)
+    case updateAvailable
+    case downloading(fraction: Double)
+    case downloaded
+    case installing
     case failed(message: String)
 
     init(state: AppUpdater.UpdateState) {
         switch state {
         case .none:
             self = .idle
-        case .newVersionDetected(let release, _):
-            self = .updateAvailable(version: UpdateStatus.formatVersion(release.tagName))
-        case .downloading(let release, _, let fraction):
-            self = .downloading(version: UpdateStatus.formatVersion(release.tagName), fraction: fraction)
-        case .downloaded(let release, _, _):
-            self = .downloaded(version: UpdateStatus.formatVersion(release.tagName))
+        case .newVersionDetected:
+            self = .updateAvailable
+        case .downloading(_, _, let fraction):
+            self = .downloading(fraction: fraction)
+        case .downloaded:
+            self = .downloaded
         }
     }
 
@@ -123,14 +148,14 @@ enum UpdateStatus: Equatable {
             return "Checking for updates"
         case .upToDate:
             return "Up to date"
-        case .updateAvailable(let version):
-            return "Update available \(version)"
-        case .downloading(let version, _):
-            return "Downloading \(version)"
-        case .downloaded(let version):
-            return "Downloaded \(version)"
-        case .installing(let version):
-            return "Installing \(version)"
+        case .updateAvailable:
+            return "Update available"
+        case .downloading:
+            return "Downloading update"
+        case .downloaded:
+            return "Downloaded"
+        case .installing:
+            return "Installing update"
         case .failed:
             return "Update failed"
         }
@@ -146,7 +171,7 @@ enum UpdateStatus: Equatable {
             return "You are on the latest published version."
         case .updateAvailable:
             return "The release is ready to download."
-        case .downloading(_, let fraction):
+        case .downloading(let fraction):
             return "\(Int(fraction * 100))% downloaded."
         case .downloaded:
             return "Installing the update now."
@@ -188,21 +213,63 @@ enum UpdateStatus: Equatable {
     }
 
     var progress: Double? {
-        if case .downloading(_, let fraction) = self {
+        if case .downloading(let fraction) = self {
             return fraction
         }
         return nil
     }
+}
 
-    private static func formatVersion(_ version: Version) -> String {
-        var result = "\(version.major).\(version.minor).\(version.patch)"
-        if !version.prereleaseIdentifiers.isEmpty {
-            result += "-" + version.prereleaseIdentifiers.joined(separator: ".")
+enum UpdateNotice: Identifiable {
+    case updateAvailable
+    case downloaded
+    case upToDate
+    case missingVersionMetadata
+    case failed(message: String)
+
+    var id: String {
+        switch self {
+        case .updateAvailable:
+            return "updateAvailable"
+        case .downloaded:
+            return "downloaded"
+        case .upToDate:
+            return "upToDate"
+        case .missingVersionMetadata:
+            return "missingVersionMetadata"
+        case .failed(let message):
+            return "failed-\(message)"
         }
-        if !version.buildMetadataIdentifiers.isEmpty {
-            result += "+" + version.buildMetadataIdentifiers.joined(separator: ".")
+    }
+
+    var title: String {
+        switch self {
+        case .updateAvailable:
+            return "Update Available"
+        case .downloaded:
+            return "Update Downloaded"
+        case .upToDate:
+            return "No Updates Found"
+        case .missingVersionMetadata:
+            return "Updates Disabled"
+        case .failed:
+            return "Update Failed"
         }
-        return result
+    }
+
+    var message: String {
+        switch self {
+        case .updateAvailable:
+            return "A newer version was found and will download in the background."
+        case .downloaded:
+            return "The update has finished downloading and will install now."
+        case .upToDate:
+            return "Clocker is already on the latest published version."
+        case .missingVersionMetadata:
+            return "Clocker could not read its version metadata, so updates are disabled."
+        case .failed(let message):
+            return message
+        }
     }
 }
 

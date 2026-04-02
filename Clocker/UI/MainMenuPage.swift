@@ -125,7 +125,9 @@ struct MainMenuPage: View {
                 .buttonStyle(MenuRowButtonStyle())
 
                 if appUpdateService.isAvailable {
-                    VStack(spacing: 6) {
+                    Button {
+                        appUpdateService.checkForUpdates()
+                    } label: {
                         HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
                             MenuIcon(systemName: appUpdateService.status.symbolName)
                             VStack(alignment: .leading, spacing: 1) {
@@ -144,6 +146,10 @@ struct MainMenuPage: View {
                             } else if appUpdateService.status.isBusy {
                                 ProgressView()
                                     .controlSize(.small)
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .font(ClockerTheme.Fonts.chevron)
+                                    .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
                             }
                         }
                         .padding(.vertical, 8)
@@ -156,24 +162,9 @@ struct MainMenuPage: View {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
                         )
-
-                        Button {
-                            appUpdateService.checkForUpdates()
-                        } label: {
-                            HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
-                                MenuIcon(systemName: "arrow.down.circle")
-                                Text("Check for Updates")
-                                    .font(ClockerTheme.Fonts.rowLabel)
-                                Spacer()
-                                Image(systemName: "arrow.up.forward.square")
-                                    .font(ClockerTheme.Fonts.chevron)
-                                    .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(MenuRowButtonStyle())
-                        .disabled(appUpdateService.status.isBusy)
                     }
+                    .buttonStyle(MenuRowButtonStyle())
+                    .disabled(appUpdateService.status.isBusy)
                 }
 
                 Divider()
@@ -208,6 +199,13 @@ struct MainMenuPage: View {
                 .padding(.top, 2)
             }
             .padding(.vertical, ClockerTheme.Spacing.sectionGap)
+        }
+        .alert(item: $appUpdateService.notice) { notice in
+            Alert(
+                title: Text(notice.title),
+                message: Text(notice.message),
+                dismissButton: .default(Text("OK"))
+            )
         }
     }
 
