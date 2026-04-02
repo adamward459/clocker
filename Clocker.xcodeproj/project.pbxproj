@@ -12,21 +12,20 @@
 		542E18C12F7AF4FC000FF46B /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000003 /* MenuBarPopover.swift */; };
 		542E18C22F7AF4FC000FF46B /* MainMenuPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000004 /* MainMenuPage.swift */; };
 		542E18C32F7AF4FC000FF46B /* HistoryPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000005 /* HistoryPage.swift */; };
-		542E18D02F7AF4FC000FF46B /* ProjectsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000020 /* ProjectsPage.swift */; };
 		542E18C42F7AF4FC000FF46B /* MenuRowButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000006 /* MenuRowButtonStyle.swift */; };
 		542E18C52F7AF4FC000FF46B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000007 /* AppDelegate.swift */; };
 		542E18C62F7AF4FC000FF46B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000008 /* Theme.swift */; };
 		542E18C72F7AF4FC000FF46B /* TimeWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000009 /* TimeWriter.swift */; };
 		542E18C82F7AF4FC000FF46B /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000011 /* LoginItemService.swift */; };
+		542E18C92F7AF4FC000FF46B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000010 /* Assets.xcassets */; };
 		542E18CA2F7AF4FC000FF46B /* ClockProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000016 /* ClockProject.swift */; };
 		542E18CB2F7AF4FC000FF46B /* ProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000017 /* ProjectStore.swift */; };
-		542E18C92F7AF4FC000FF46B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000010 /* Assets.xcassets */; };
+		542E18D02F7AF4FC000FF46B /* ProjectsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000020 /* ProjectsPage.swift */; };
 		A00100010000000000000001 /* ClockerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000001 /* ClockerApp.swift */; };
 		A00100010000000000000002 /* ClockModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000002 /* ClockModel.swift */; };
 		A00100010000000000000003 /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000003 /* MenuBarPopover.swift */; };
 		A00100010000000000000004 /* MainMenuPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000004 /* MainMenuPage.swift */; };
 		A00100010000000000000005 /* HistoryPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000005 /* HistoryPage.swift */; };
-		A00100010000000000000020 /* ProjectsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000020 /* ProjectsPage.swift */; };
 		A00100010000000000000006 /* MenuRowButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000006 /* MenuRowButtonStyle.swift */; };
 		A00100010000000000000007 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000007 /* AppDelegate.swift */; };
 		A00100010000000000000008 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000008 /* Theme.swift */; };
@@ -36,6 +35,7 @@
 		A00100010000000000000012 /* ClockerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000012 /* ClockerTests.swift */; };
 		A00100010000000000000013 /* ClockProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000016 /* ClockProject.swift */; };
 		A00100010000000000000014 /* ProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000017 /* ProjectStore.swift */; };
+		A00100010000000000000020 /* ProjectsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000020 /* ProjectsPage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +54,6 @@
 		A00200010000000000000003 /* MenuBarPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopover.swift; sourceTree = "<group>"; };
 		A00200010000000000000004 /* MainMenuPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuPage.swift; sourceTree = "<group>"; };
 		A00200010000000000000005 /* HistoryPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryPage.swift; sourceTree = "<group>"; };
-		A00200010000000000000020 /* ProjectsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectsPage.swift; sourceTree = "<group>"; };
 		A00200010000000000000006 /* MenuRowButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuRowButtonStyle.swift; sourceTree = "<group>"; };
 		A00200010000000000000007 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A00200010000000000000008 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -67,6 +66,7 @@
 		A00200010000000000000015 /* ClockerDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClockerDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A00200010000000000000016 /* ClockProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockProject.swift; sourceTree = "<group>"; };
 		A00200010000000000000017 /* ProjectStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectStore.swift; sourceTree = "<group>"; };
+		A00200010000000000000020 /* ProjectsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectsPage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -381,7 +381,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = WN2DF2V3R4;
+				DEVELOPMENT_TEAM = BB3U5ED794;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Clocker;
@@ -405,7 +405,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = WN2DF2V3R4;
+				DEVELOPMENT_TEAM = BB3U5ED794;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Clocker;
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -466,9 +466,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = WN2DF2V3R4;
+				DEVELOPMENT_TEAM = BB3U5ED794;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ClockerDev;
@@ -492,7 +493,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = WN2DF2V3R4;
+				DEVELOPMENT_TEAM = BB3U5ED794;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ClockerDev;
 				INFOPLIST_KEY_LSUIElement = YES;

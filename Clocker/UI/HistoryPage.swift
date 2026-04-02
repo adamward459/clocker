@@ -5,6 +5,7 @@ struct HistoryEntry: Identifiable {
     let fileName: String
     let fileSize: String
     let modifiedDate: String
+    let lastRecord: String?
     let icon: String
 }
 
@@ -137,9 +138,19 @@ struct HistoryPage: View {
                     .font(ClockerTheme.Fonts.rowLabel)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                Text("\(entry.fileSize) · \(entry.modifiedDate)")
-                    .font(ClockerTheme.Fonts.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    if let lastRecord = entry.lastRecord {
+                        Text(lastRecord)
+                            .font(ClockerTheme.Fonts.caption)
+                            .foregroundStyle(.secondary)
+                        Text("·")
+                            .font(ClockerTheme.Fonts.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(entry.fileSize)
+                        .font(ClockerTheme.Fonts.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             Spacer()
         }
@@ -186,7 +197,7 @@ struct HistoryPage: View {
             let ignoredRootFileNames: Set<String> = ["projects.json", "state.json"]
 
             let sortedContents = contents.sorted {
-                $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
+                $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedDescending
             }
 
             let rootFiles = sortedContents.filter { url in
@@ -217,7 +228,7 @@ struct HistoryPage: View {
 
                 let entries = directoryEntries
                     .sorted {
-                        $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
+                        $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedDescending
                     }
                     .filter { fileURL in
                         var isDirectory: ObjCBool = false
@@ -264,12 +275,23 @@ struct HistoryPage: View {
 
     private func makeEntry(_ fileURL: URL, dateFmt: DateFormatter) -> HistoryEntry {
         let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
+        let lastRecord = Self.readLastRecord(from: fileURL)
         return HistoryEntry(
             fileName: fileURL.lastPathComponent,
             fileSize: formatSize(values?.fileSize ?? 0),
             modifiedDate: dateFmt.string(from: values?.contentModificationDate ?? Date()),
+            lastRecord: lastRecord,
             icon: iconForFile(fileURL)
         )
+    }
+
+    private static func readLastRecord(from url: URL) -> String? {
+        guard let contents = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+        let lines = contents
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return lines.last
     }
 
     private func formatSize(_ bytes: Int) -> String {
