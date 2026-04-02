@@ -22,6 +22,7 @@ Built with SwiftUI and AppKit. Requires macOS 13+.
 - **Daily persistence** — each second is appended to a dated `.txt` file so your progress is never lost, even if the app crashes
 - **Auto-restore** — on launch, Clocker reads today's log file and restores the elapsed time for the active project
 - **History view** — browse all recorded days grouped by project, with file size and modification date
+- **History status** — mark any history day as done or not done with a green/red badge
 - **Open at Login** — toggle launch-at-login via `SMAppService` (no helper app needed)
 - **Automatic updates** — GitHub Releases integration via AppUpdater for signed release builds
 - **Open storage folder** — quick access to your time logs from the popover menu
@@ -47,6 +48,7 @@ All data lives under `~/Documents/Clocker` (release) or `~/Documents/Clocker-Dev
 ```
 ~/Documents/Clocker/
 ├── 2026-03-31.txt          ← default project ("Inbox") daily log
+├── .2026-03-31.txt.status.json  ← hidden done/undone status for the day
 ├── projects.json           ← project definitions
 ├── state.json              ← active project ID
 └── <project-uuid>/
@@ -64,6 +66,8 @@ Each `.txt` file contains one line per second with the running total:
 ```
 
 On restore, Clocker reads the last line of today's file to recover the elapsed time.
+
+History status is stored in a hidden JSON sidecar next to each daily log so the timer format stays unchanged.
 
 ### Projects
 

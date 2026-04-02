@@ -20,6 +20,7 @@
 		542E18C92F7AF4FC000FF46B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000010 /* Assets.xcassets */; };
 		542E18CA2F7AF4FC000FF46B /* ClockProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000016 /* ClockProject.swift */; };
 		542E18CB2F7AF4FC000FF46B /* ProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000017 /* ProjectStore.swift */; };
+		542E18CC2F7AF4FC000FF46B /* HistoryRecordStatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000019 /* HistoryRecordStatusStore.swift */; };
 		542E18D02F7AF4FC000FF46B /* ProjectsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000020 /* ProjectsPage.swift */; };
 		542E18D12F7AF4FC000FF46B /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000018 /* AppUpdateService.swift */; };
 		542E18D22F7AF4FC000FF46B /* AppUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = A00D00010000000000000002 /* AppUpdater */; };
@@ -38,6 +39,7 @@
 		A00100010000000000000013 /* ClockProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000016 /* ClockProject.swift */; };
 		A00100010000000000000014 /* ProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000017 /* ProjectStore.swift */; };
 		A00100010000000000000015 /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000018 /* AppUpdateService.swift */; };
+		A00100010000000000000017 /* HistoryRecordStatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000019 /* HistoryRecordStatusStore.swift */; };
 		A00100010000000000000016 /* AppUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = A00D00010000000000000002 /* AppUpdater */; };
 		A00100010000000000000020 /* ProjectsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000020 /* ProjectsPage.swift */; };
 /* End PBXBuildFile section */
@@ -71,6 +73,7 @@
 		A00200010000000000000016 /* ClockProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockProject.swift; sourceTree = "<group>"; };
 		A00200010000000000000017 /* ProjectStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectStore.swift; sourceTree = "<group>"; };
 		A00200010000000000000018 /* AppUpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateService.swift; sourceTree = "<group>"; };
+		A00200010000000000000019 /* HistoryRecordStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRecordStatusStore.swift; sourceTree = "<group>"; };
 		A00200010000000000000020 /* ProjectsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectsPage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -151,6 +154,7 @@
 			children = (
 				A00200010000000000000017 /* ProjectStore.swift */,
 				A00200010000000000000009 /* TimeWriter.swift */,
+				A00200010000000000000019 /* HistoryRecordStatusStore.swift */,
 				A00200010000000000000011 /* LoginItemService.swift */,
 				A00200010000000000000018 /* AppUpdateService.swift */,
 			);
@@ -220,6 +224,7 @@
 			buildConfigurationList = A00B00010000000000000004 /* Build configuration list for PBXNativeTarget "ClockerDev" */;
 			buildPhases = (
 				A00800010000000000000003 /* Sources */,
+				A00600010000000000000002 /* Frameworks */,
 				A00900010000000000000003 /* Resources */,
 			);
 			buildRules = (
@@ -318,6 +323,7 @@
 				A00100010000000000000015 /* AppUpdateService.swift in Sources */,
 				A00100010000000000000013 /* ClockProject.swift in Sources */,
 				A00100010000000000000014 /* ProjectStore.swift in Sources */,
+				A00100010000000000000017 /* HistoryRecordStatusStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -339,6 +345,7 @@
 				542E18D12F7AF4FC000FF46B /* AppUpdateService.swift in Sources */,
 				542E18CA2F7AF4FC000FF46B /* ClockProject.swift in Sources */,
 				542E18CB2F7AF4FC000FF46B /* ProjectStore.swift in Sources */,
+				542E18CC2F7AF4FC000FF46B /* HistoryRecordStatusStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -403,7 +410,7 @@
 				DEVELOPMENT_TEAM = BB3U5ED794;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				INFOPLIST_KEY_CFBundleDisplayName = Clocker;
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -411,7 +418,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.3.6;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -428,7 +435,7 @@
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = BB3U5ED794;
 				GENERATE_INFOPLIST_FILE = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				INFOPLIST_KEY_CFBundleDisplayName = Clocker;
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -436,7 +443,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.3.6;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -495,7 +502,7 @@
 				DEVELOPMENT_TEAM = BB3U5ED794;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				INFOPLIST_KEY_CFBundleDisplayName = ClockerDev;
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -503,7 +510,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.3.6;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -520,7 +527,7 @@
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = BB3U5ED794;
 				GENERATE_INFOPLIST_FILE = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				INFOPLIST_KEY_CFBundleDisplayName = ClockerDev;
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -528,7 +535,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.3.6;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.clocker.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

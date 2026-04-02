@@ -3,16 +3,18 @@ import SwiftUI
 struct HistoryEntry: Identifiable {
     let id = UUID()
     let fileName: String
+    let fileURL: URL
     let fileSize: String
     let modifiedDate: String
     let lastRecord: String?
     let icon: String
+    var isDone: Bool
 }
 
 struct HistorySection: Identifiable {
     let id: String
     let projectName: String
-    let entries: [HistoryEntry]
+    var entries: [HistoryEntry]
 }
 
 struct HistoryPage: View {
@@ -22,6 +24,7 @@ struct HistoryPage: View {
     @State private var backHovered = false
     @State private var sections: [HistorySection] = []
     @State private var errorMessage: String?
+    private let statusStore = HistoryRecordStatusStore()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -73,9 +76,9 @@ struct HistoryPage: View {
                 emptyState(icon: "exclamationmark.triangle", message: error)
             } else if sections.isEmpty {
                 emptyState(icon: "folder.badge.questionmark", message: "No records found")
-            } else {
-                fileList
-            }
+        } else {
+            fileList
+        }
         }
         .onAppear { loadEntries() }
         .onChange(of: isVisible) { _, visible in
@@ -112,16 +115,12 @@ struct HistoryPage: View {
                                 }
                             }
                         }
-                        .background(
-                            RoundedRectangle(cornerRadius: ClockerTheme.Size.cornerRadius, style: .continuous)
-                                .fill(ClockerTheme.Colors.hoverFill.opacity(0.25))
-                        )
+                        .background(sectionBackground)
                     }
                 }
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 0)
-            .allowsHitTesting(false)
         }
         .frame(maxHeight: ClockerTheme.Size.historyMaxHeight)
     }
@@ -153,9 +152,21 @@ struct HistoryPage: View {
                 }
             }
             Spacer()
+
+            Button {
+                toggleStatus(for: entry)
+            } label: {
+                statusBadge(isDone: entry.isDone)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(entry.isDone ? "Mark as not done" : "Mark as done")
         }
         .padding(.horizontal, 18)
         .padding(.vertical, ClockerTheme.Spacing.rowVertical)
+        .background(
+            RoundedRectangle(cornerRadius: ClockerTheme.Size.cornerRadius, style: .continuous)
+                .fill(entry.isDone ? Color.green.opacity(0.07) : Color.red.opacity(0.05))
+        )
     }
 
     private func emptyState(icon: String, message: String) -> some View {
@@ -278,10 +289,12 @@ struct HistoryPage: View {
         let lastRecord = Self.readLastRecord(from: fileURL)
         return HistoryEntry(
             fileName: fileURL.lastPathComponent,
+            fileURL: fileURL,
             fileSize: formatSize(values?.fileSize ?? 0),
             modifiedDate: dateFmt.string(from: values?.contentModificationDate ?? Date()),
             lastRecord: lastRecord,
-            icon: iconForFile(fileURL)
+            icon: iconForFile(fileURL),
+            isDone: statusStore.isDone(for: fileURL)
         )
     }
 
@@ -308,6 +321,39 @@ struct HistoryPage: View {
             var isDir: ObjCBool = false
             FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir)
             return isDir.boolValue ? "folder.fill" : "doc.fill"
+        }
+    }
+
+    private var sectionBackground: some View {
+        RoundedRectangle(cornerRadius: ClockerTheme.Size.cornerRadius, style: .continuous)
+            .fill(ClockerTheme.Colors.hoverFill.opacity(0.25))
+    }
+
+    private func statusBadge(isDone: Bool) -> some View {
+        let color = isDone ? Color.green : Color.red
+        let systemImage = isDone ? "checkmark.circle.fill" : "xmark.circle.fill"
+
+        return Image(systemName: systemImage)
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(color)
+            .padding(4)
+            .background(
+                Circle()
+                    .fill(color.opacity(0.12))
+            )
+    }
+
+    private func toggleStatus(for entry: HistoryEntry) {
+        let nextValue = !entry.isDone
+        statusStore.setDone(nextValue, for: entry.fileURL)
+        updateStatus(for: entry.fileURL, isDone: nextValue)
+    }
+
+    private func updateStatus(for fileURL: URL, isDone: Bool) {
+        for sectionIndex in sections.indices {
+            guard let entryIndex = sections[sectionIndex].entries.firstIndex(where: { $0.fileURL == fileURL }) else { continue }
+            sections[sectionIndex].entries[entryIndex].isDone = isDone
+            return
         }
     }
 }

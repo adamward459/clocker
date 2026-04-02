@@ -42,6 +42,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
 
         clockModel.restoreTodayRecordIfAvailable()
         updateStatusItemTitle()
+
+        if ProcessInfo.processInfo.environment["CLOCKER_SCREENSHOT_MODE"] == "1" {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                guard let self else { return }
+                NSApp.activate(ignoringOtherApps: true)
+                self.togglePopover()
+            }
+        }
     }
 
     @objc private func handleStatusItemClick(_ sender: Any?) {

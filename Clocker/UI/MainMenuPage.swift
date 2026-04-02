@@ -245,9 +245,7 @@ struct MainMenuPage: View {
 
     private var appVersionLabel: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
-        guard let build, !build.isEmpty else { return "Version \(version)" }
-        return "Version \(version) (\(build))"
+        return "Version \(version)"
     }
 }
 

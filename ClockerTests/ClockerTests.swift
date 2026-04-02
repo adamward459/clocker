@@ -50,6 +50,23 @@ final class ClockerTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: fileURL.path))
     }
 
+    func testHistoryRecordStatusStorePersistsAndClearsDoneState() throws {
+        let store = HistoryRecordStatusStore()
+        let fileURL = todayFileURL()
+        let statusURL = HistoryRecordStatusStore.statusFileURL(for: fileURL)
+
+        XCTAssertFalse(store.isDone(for: fileURL))
+
+        store.setDone(true, for: fileURL)
+        XCTAssertTrue(store.isDone(for: fileURL))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: statusURL.path))
+        XCTAssertEqual(try String(contentsOf: statusURL, encoding: .utf8), "{\n  \"isDone\" : true\n}")
+
+        store.setDone(false, for: fileURL)
+        XCTAssertFalse(store.isDone(for: fileURL))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: statusURL.path))
+    }
+
     func testClockModelParsesRestoredTimeFromLastNonEmptyLine() {
         XCTAssertEqual(ClockModel.parseElapsedSeconds(from: "00:01\n00:42\n"), 42)
         XCTAssertEqual(ClockModel.parseElapsedSeconds(from: "\n 01:02:03 \n\n"), 3723)
