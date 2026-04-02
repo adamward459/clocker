@@ -1,9 +1,15 @@
 import AppUpdater
+import Combine
 import Foundation
+import Version
 
 @MainActor
 final class AppUpdateService: ObservableObject {
     private let updater: AppUpdater?
+    private var stateObservation: AnyCancellable?
+
+    @Published private(set) var status: UpdateStatus = .idle
+    @Published private(set) var lastError: Error?
 
     var isAvailable: Bool {
         updater != nil
@@ -21,21 +27,182 @@ final class AppUpdateService: ObservableObject {
             releasePrefix: "Clocker",
             provider: NormalizedGithubReleaseProvider()
         )
+        self.updater = updater
         updater.skipCodeSignValidation = true
-        updater.onDownloadSuccess = { [weak updater] in
+        updater.onDownloadSuccess = { [weak self, weak updater] in
+            Task { @MainActor in
+                self?.status = .installing(version: self?.currentStatusVersion ?? "latest")
+            }
             updater?.install()
         }
-        updater.onDownloadFail = { [weak updater] error in
-            guard !error.isCancelled else { return }
+        updater.onDownloadFail = { [weak self] error in
             Task { @MainActor in
-                updater?.lastError = error
+                self?.handleFailure(error)
             }
         }
-        self.updater = updater
+        stateObservation = updater.$state.sink { [weak self] state in
+            Task { @MainActor in
+                self?.status = UpdateStatus(state: state)
+            }
+        }
+        status = .idle
     }
 
     func checkForUpdates() {
-        updater?.check()
+        guard let updater else { return }
+        status = .checking
+        lastError = nil
+        updater.check(success: { [weak self, weak updater] in
+            Task { @MainActor in
+                self?.status = .installing(version: self?.currentStatusVersion ?? "latest")
+            }
+            updater?.install()
+        }, fail: { [weak self] error in
+            self?.handleCheckFailure(error)
+        })
+    }
+
+    private func handleCheckFailure(_ error: Error) {
+        handleFailure(error)
+    }
+
+    private func handleFailure(_ error: Error) {
+        if error.isCancelled {
+            return
+        }
+
+        lastError = error
+        if case AppUpdater.Error.noValidUpdate = error {
+            status = .upToDate
+        } else {
+            status = .failed(message: error.localizedDescription)
+        }
+    }
+
+    private var currentStatusVersion: String {
+        switch status {
+        case .updateAvailable(let version),
+                .downloading(let version, _),
+                .downloaded(let version),
+                .installing(let version):
+            return version
+        case .idle, .checking, .upToDate, .failed:
+            return Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "latest"
+        }
+    }
+}
+
+enum UpdateStatus: Equatable {
+    case idle
+    case checking
+    case upToDate
+    case updateAvailable(version: String)
+    case downloading(version: String, fraction: Double)
+    case downloaded(version: String)
+    case installing(version: String)
+    case failed(message: String)
+
+    init(state: AppUpdater.UpdateState) {
+        switch state {
+        case .none:
+            self = .idle
+        case .newVersionDetected(let release, _):
+            self = .updateAvailable(version: UpdateStatus.formatVersion(release.tagName))
+        case .downloading(let release, _, let fraction):
+            self = .downloading(version: UpdateStatus.formatVersion(release.tagName), fraction: fraction)
+        case .downloaded(let release, _, _):
+            self = .downloaded(version: UpdateStatus.formatVersion(release.tagName))
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .idle:
+            return "Updates"
+        case .checking:
+            return "Checking for updates"
+        case .upToDate:
+            return "Up to date"
+        case .updateAvailable(let version):
+            return "Update available \(version)"
+        case .downloading(let version, _):
+            return "Downloading \(version)"
+        case .downloaded(let version):
+            return "Downloaded \(version)"
+        case .installing(let version):
+            return "Installing \(version)"
+        case .failed:
+            return "Update failed"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .idle:
+            return "Check GitHub Releases for the latest build."
+        case .checking:
+            return "Contacting GitHub Releases."
+        case .upToDate:
+            return "You are on the latest published version."
+        case .updateAvailable:
+            return "The release is ready to download."
+        case .downloading(_, let fraction):
+            return "\(Int(fraction * 100))% downloaded."
+        case .downloaded:
+            return "Installing the update now."
+        case .installing:
+            return "Relaunching Clocker."
+        case .failed(let message):
+            return message
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .idle:
+            return "arrow.down.circle"
+        case .checking:
+            return "arrow.triangle.2.circlepath"
+        case .upToDate:
+            return "checkmark.seal"
+        case .updateAvailable:
+            return "arrow.down.circle.fill"
+        case .downloading:
+            return "arrow.down.circle.fill"
+        case .downloaded:
+            return "checkmark.circle.fill"
+        case .installing:
+            return "arrow.triangle.2.circlepath"
+        case .failed:
+            return "exclamationmark.triangle.fill"
+        }
+    }
+
+    var isBusy: Bool {
+        switch self {
+        case .checking, .downloading, .downloaded, .installing:
+            return true
+        case .idle, .upToDate, .updateAvailable, .failed:
+            return false
+        }
+    }
+
+    var progress: Double? {
+        if case .downloading(_, let fraction) = self {
+            return fraction
+        }
+        return nil
+    }
+
+    private static func formatVersion(_ version: Version) -> String {
+        var result = "\(version.major).\(version.minor).\(version.patch)"
+        if !version.prereleaseIdentifiers.isEmpty {
+            result += "-" + version.prereleaseIdentifiers.joined(separator: ".")
+        }
+        if !version.buildMetadataIdentifiers.isEmpty {
+            result += "+" + version.buildMetadataIdentifiers.joined(separator: ".")
+        }
+        return result
     }
 }
 

@@ -125,26 +125,55 @@ struct MainMenuPage: View {
                 .buttonStyle(MenuRowButtonStyle())
 
                 if appUpdateService.isAvailable {
-                    Button {
-                        appUpdateService.checkForUpdates()
-                    } label: {
+                    VStack(spacing: 6) {
                         HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
-                            MenuIcon(systemName: "arrow.down.circle")
+                            MenuIcon(systemName: appUpdateService.status.symbolName)
                             VStack(alignment: .leading, spacing: 1) {
-                                Text("Check for Updates")
+                                Text(appUpdateService.status.title)
                                     .font(ClockerTheme.Fonts.rowLabel)
-                                Text("GitHub Releases")
+                                Text(appUpdateService.status.subtitle)
                                     .font(ClockerTheme.Fonts.caption)
                                     .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                                    .truncationMode(.tail)
                             }
                             Spacer()
-                            Image(systemName: "arrow.up.forward.square")
-                                .font(ClockerTheme.Fonts.chevron)
-                                .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
+                            if let progress = appUpdateService.status.progress {
+                                ProgressView(value: progress)
+                                    .frame(width: 44)
+                            } else if appUpdateService.status.isBusy {
+                                ProgressView()
+                                    .controlSize(.small)
+                            }
                         }
-                        .contentShape(Rectangle())
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, ClockerTheme.Spacing.rowOuterPadding)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(ClockerTheme.Colors.hoverFill)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
+                        )
+
+                        Button {
+                            appUpdateService.checkForUpdates()
+                        } label: {
+                            HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
+                                MenuIcon(systemName: "arrow.down.circle")
+                                Text("Check for Updates")
+                                    .font(ClockerTheme.Fonts.rowLabel)
+                                Spacer()
+                                Image(systemName: "arrow.up.forward.square")
+                                    .font(ClockerTheme.Fonts.chevron)
+                                    .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(MenuRowButtonStyle())
+                        .disabled(appUpdateService.status.isBusy)
                     }
-                    .buttonStyle(MenuRowButtonStyle())
                 }
 
                 Divider()
