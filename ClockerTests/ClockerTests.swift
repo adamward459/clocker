@@ -80,6 +80,85 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(ClockModel.formatElapsed(3661), "1:01:01")
     }
 
+    func testHistoryDataBuilderBuildsFileEntriesInFilesMode() throws {
+        let fileURL = try createHistoryFile(name: "2026-01-01.txt", contents: "00:00:59\n")
+
+        let result = HistoryDataBuilder.makeResult(
+            for: [fileURL],
+            mode: .files,
+            isDone: { _ in true }
+        )
+
+        XCTAssertNil(result.summaryText)
+        XCTAssertEqual(result.entries.count, 1)
+        XCTAssertEqual(result.entries[0].title, "2026-01-01.txt")
+        XCTAssertEqual(result.entries[0].secondaryText, "00:00:59")
+        XCTAssertNotNil(result.entries[0].accessoryText)
+        XCTAssertTrue(result.entries[0].allowsStatusToggle)
+        XCTAssertTrue(result.entries[0].isDone)
+    }
+
+    func testHistoryDataBuilderGroupsWeeksAcrossBoundaries() throws {
+        let fileOne = try createHistoryFile(name: "2024-01-01.txt", contents: "00:01:00\n")
+        let fileTwo = try createHistoryFile(name: "2024-01-08.txt", contents: "00:02:00\n")
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+
+        let buckets = HistoryDataBuilder.groupedBuckets(
+            for: [fileOne, fileTwo],
+            mode: .week,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(buckets.count, 2)
+        XCTAssertEqual(buckets[0].totalSeconds, 120)
+        XCTAssertEqual(buckets[0].fileCount, 1)
+        XCTAssertEqual(buckets[1].totalSeconds, 60)
+        XCTAssertEqual(buckets[1].fileCount, 1)
+    }
+
+    func testHistoryDataBuilderGroupsMonthsAcrossBoundaries() throws {
+        let fileOne = try createHistoryFile(name: "2024-01-31.txt", contents: "00:01:30\n")
+        let fileTwo = try createHistoryFile(name: "2024-02-01.txt", contents: "00:02:30\n")
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+
+        let buckets = HistoryDataBuilder.groupedBuckets(
+            for: [fileOne, fileTwo],
+            mode: .month,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(buckets.count, 2)
+        XCTAssertEqual(buckets[0].totalSeconds, 150)
+        XCTAssertEqual(buckets[1].totalSeconds, 90)
+    }
+
+    func testHistoryDataBuilderFormatsSummaryDurationAsHHMMSS() {
+        XCTAssertEqual(HistoryDataBuilder.formatSummaryDuration(59), "00:00:59")
+        XCTAssertEqual(HistoryDataBuilder.formatSummaryDuration(3661), "01:01:01")
+    }
+
+    func testHistoryViewModeSelectionCanBePersistedInUserDefaults() {
+        let key = HistoryPage.viewModeStorageKey
+        let defaults = UserDefaults.standard
+        let originalValue = defaults.string(forKey: key)
+        defer {
+            if let originalValue {
+                defaults.set(originalValue, forKey: key)
+            } else {
+                defaults.removeObject(forKey: key)
+            }
+        }
+
+        defaults.set(HistoryViewMode.month.rawValue, forKey: key)
+
+        XCTAssertEqual(defaults.string(forKey: key), HistoryViewMode.month.rawValue)
+        XCTAssertEqual(HistoryViewMode(rawValue: defaults.string(forKey: key) ?? ""), .month)
+    }
+
     func testClockModelBuildsTodayFileURLInsideStorageDirectory() {
         let url = ClockModel.currentDayFileURL(storageURL: tempDirectory, date: Date(timeIntervalSince1970: 0))
         XCTAssertEqual(url.deletingLastPathComponent(), tempDirectory)
@@ -168,6 +247,12 @@ final class ClockerTests: XCTestCase {
 
     private func todayFileURL() -> URL {
         ClockModel.currentDayFileURL(storageURL: tempDirectory)
+    }
+
+    private func createHistoryFile(name: String, contents: String) throws -> URL {
+        let url = tempDirectory.appendingPathComponent(name)
+        try contents.write(to: url, atomically: true, encoding: .utf8)
+        return url
     }
 
 }

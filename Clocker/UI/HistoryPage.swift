@@ -1,30 +1,60 @@
 import SwiftUI
 
+enum HistoryViewMode: String, CaseIterable, Identifiable {
+    case files
+    case week
+    case month
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .files:
+            return "Files"
+        case .week:
+            return "Week"
+        case .month:
+            return "Month"
+        }
+    }
+}
+
 struct HistoryEntry: Identifiable {
     let id = UUID()
-    let fileName: String
-    let fileURL: URL
-    let fileSize: String
-    let modifiedDate: String
-    let lastRecord: String?
+    let title: String
+    let fileURL: URL?
+    let secondaryText: String?
+    let accessoryText: String?
+    let trailingText: String?
     let icon: String
     var isDone: Bool
+    let allowsStatusToggle: Bool
 }
 
 struct HistorySection: Identifiable {
     let id: String
     let projectName: String
+    var summaryText: String?
     var entries: [HistoryEntry]
 }
 
 struct HistoryPage: View {
+    static let viewModeStorageKey = "history.viewMode"
+
     @EnvironmentObject var clockModel: ClockModel
+    @AppStorage(Self.viewModeStorageKey) private var viewModeRawValue = HistoryViewMode.files.rawValue
+
     var navigateBack: () -> Void
     var isVisible: Bool = false
     @State private var backHovered = false
     @State private var sections: [HistorySection] = []
     @State private var errorMessage: String?
     private let statusStore = HistoryRecordStatusStore()
+
+    private var viewMode: HistoryViewMode {
+        get { HistoryViewMode(rawValue: viewModeRawValue) ?? .files }
+        set { viewModeRawValue = newValue.rawValue }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -72,24 +102,37 @@ struct HistoryPage: View {
             Divider()
                 .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
 
+            Picker("History view", selection: $viewModeRawValue) {
+                ForEach(HistoryViewMode.allCases) { mode in
+                    Text(mode.title).tag(mode.rawValue)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
+            .padding(.vertical, 10)
+
             if let error = errorMessage {
                 emptyState(icon: "exclamationmark.triangle", message: error)
             } else if sections.isEmpty {
                 emptyState(icon: "folder.badge.questionmark", message: "No records found")
-        } else {
-            fileList
-        }
+            } else {
+                historyList
+            }
         }
         .onAppear { loadEntries() }
         .onChange(of: isVisible) { _, visible in
             if visible { loadEntries() }
+        }
+        .onChange(of: viewModeRawValue) { _, _ in
+            if isVisible { loadEntries() }
         }
         .onChange(of: clockModel.projects) { _, _ in
             if isVisible { loadEntries() }
         }
     }
 
-    private var fileList: some View {
+    private var historyList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 ForEach(sections) { section in
@@ -98,8 +141,9 @@ struct HistoryPage: View {
                             Text(section.projectName)
                                 .font(ClockerTheme.Fonts.navTitle)
                             Spacer()
-                            Text("\(section.entries.count)")
+                            Text(section.summaryText ?? "\(section.entries.count)")
                                 .font(ClockerTheme.Fonts.caption)
+                                .monospacedDigit()
                                 .foregroundStyle(.secondary)
                         }
                         .padding(.horizontal, 18)
@@ -125,7 +169,12 @@ struct HistoryPage: View {
         .frame(maxHeight: ClockerTheme.Size.historyMaxHeight)
     }
 
+    @ViewBuilder
     private func historyEntryRow(_ entry: HistoryEntry) -> some View {
+        let rowFill: Color = entry.allowsStatusToggle
+            ? (entry.isDone ? Color.green.opacity(0.07) : Color.red.opacity(0.05))
+            : ClockerTheme.Colors.hoverFill.opacity(0.12)
+
         HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
             Image(systemName: entry.icon)
                 .font(ClockerTheme.Fonts.historyIcon)
@@ -133,39 +182,50 @@ struct HistoryPage: View {
                 .frame(width: ClockerTheme.Size.iconWidth, alignment: .center)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(entry.fileName)
+                Text(entry.title)
                     .font(ClockerTheme.Fonts.rowLabel)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 HStack(spacing: 4) {
-                    if let lastRecord = entry.lastRecord {
-                        Text(lastRecord)
-                            .font(ClockerTheme.Fonts.caption)
-                            .foregroundStyle(.secondary)
-                        Text("·")
+                    if let secondaryText = entry.secondaryText {
+                        Text(secondaryText)
                             .font(ClockerTheme.Fonts.caption)
                             .foregroundStyle(.secondary)
                     }
-                    Text(entry.fileSize)
-                        .font(ClockerTheme.Fonts.caption)
-                        .foregroundStyle(.secondary)
+                    if let accessoryText = entry.accessoryText {
+                        if entry.secondaryText != nil {
+                            Text("·")
+                                .font(ClockerTheme.Fonts.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Text(accessoryText)
+                            .font(ClockerTheme.Fonts.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             Spacer()
 
-            Button {
-                toggleStatus(for: entry)
-            } label: {
-                statusBadge(isDone: entry.isDone)
+            if entry.allowsStatusToggle, let fileURL = entry.fileURL {
+                Button {
+                    toggleStatus(for: fileURL)
+                } label: {
+                    statusBadge(isDone: entry.isDone)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(entry.isDone ? "Mark as not done" : "Mark as done")
+            } else if let trailingText = entry.trailingText {
+                Text(trailingText)
+                    .font(ClockerTheme.Fonts.navTitle)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(entry.isDone ? "Mark as not done" : "Mark as done")
         }
         .padding(.horizontal, 18)
         .padding(.vertical, ClockerTheme.Spacing.rowVertical)
         .background(
             RoundedRectangle(cornerRadius: ClockerTheme.Size.cornerRadius, style: .continuous)
-                .fill(entry.isDone ? Color.green.opacity(0.07) : Color.red.opacity(0.05))
+                .fill(rowFill)
         )
     }
 
@@ -200,10 +260,6 @@ struct HistoryPage: View {
                 options: [.skipsHiddenFiles]
             )
 
-            let dateFmt = DateFormatter()
-            dateFmt.dateStyle = .medium
-            dateFmt.timeStyle = .short
-
             var nextSections: [HistorySection] = []
             let ignoredRootFileNames: Set<String> = ["projects.json", "state.json"]
 
@@ -211,22 +267,19 @@ struct HistoryPage: View {
                 $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedDescending
             }
 
-            let rootFiles = sortedContents.filter { url in
+            let rootFiles = sortedContents.filter { fileURL in
                 var isDirectory: ObjCBool = false
-                fm.fileExists(atPath: url.path, isDirectory: &isDirectory)
-                return !isDirectory.boolValue && !ignoredRootFileNames.contains(url.lastPathComponent)
+                fm.fileExists(atPath: fileURL.path, isDirectory: &isDirectory)
+                return !isDirectory.boolValue && !ignoredRootFileNames.contains(fileURL.lastPathComponent)
             }
 
-            let rootEntries = rootFiles.map { fileURL in
-                makeEntry(fileURL, dateFmt: dateFmt)
-            }
-            if !rootEntries.isEmpty {
-                nextSections.append(historySection(id: ClockProject.defaultID, entries: rootEntries))
+            if let rootSection = makeSection(id: ClockProject.defaultID, entries: rootFiles) {
+                nextSections.append(rootSection)
             }
 
-            let projectDirectories = sortedContents.filter { url in
+            let projectDirectories = sortedContents.filter { fileURL in
                 var isDirectory: ObjCBool = false
-                fm.fileExists(atPath: url.path, isDirectory: &isDirectory)
+                fm.fileExists(atPath: fileURL.path, isDirectory: &isDirectory)
                 return isDirectory.boolValue
             }
 
@@ -237,7 +290,7 @@ struct HistoryPage: View {
                     options: [.skipsHiddenFiles]
                 )) ?? []
 
-                let entries = directoryEntries
+                let files = directoryEntries
                     .sorted {
                         $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedDescending
                     }
@@ -246,13 +299,9 @@ struct HistoryPage: View {
                         fm.fileExists(atPath: fileURL.path, isDirectory: &isDirectory)
                         return !isDirectory.boolValue
                     }
-                    .map { fileURL in
-                        makeEntry(fileURL, dateFmt: dateFmt)
-                    }
 
-                guard !entries.isEmpty else { continue }
-
-                nextSections.append(historySection(id: directory.lastPathComponent, entries: entries))
+                guard let section = makeSection(id: directory.lastPathComponent, entries: files) else { continue }
+                nextSections.append(section)
             }
 
             let sectionByID = Dictionary(uniqueKeysWithValues: nextSections.map { ($0.id, $0) })
@@ -276,52 +325,23 @@ struct HistoryPage: View {
         }
     }
 
-    private func historySection(id: String, entries: [HistoryEntry]) -> HistorySection {
-        HistorySection(
+    private func makeSection(id: String, entries: [URL]) -> HistorySection? {
+        let result = HistoryDataBuilder.makeResult(
+            for: entries,
+            mode: viewMode,
+            isDone: { [statusStore] fileURL in
+                statusStore.isDone(for: fileURL)
+            }
+        )
+
+        guard !result.entries.isEmpty else { return nil }
+
+        return HistorySection(
             id: id,
             projectName: clockModel.projectName(for: id),
-            entries: entries
+            summaryText: result.summaryText,
+            entries: result.entries
         )
-    }
-
-    private func makeEntry(_ fileURL: URL, dateFmt: DateFormatter) -> HistoryEntry {
-        let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
-        let lastRecord = Self.readLastRecord(from: fileURL)
-        return HistoryEntry(
-            fileName: fileURL.lastPathComponent,
-            fileURL: fileURL,
-            fileSize: formatSize(values?.fileSize ?? 0),
-            modifiedDate: dateFmt.string(from: values?.contentModificationDate ?? Date()),
-            lastRecord: lastRecord,
-            icon: iconForFile(fileURL),
-            isDone: statusStore.isDone(for: fileURL)
-        )
-    }
-
-    private static func readLastRecord(from url: URL) -> String? {
-        guard let contents = try? String(contentsOf: url, encoding: .utf8) else { return nil }
-        let lines = contents
-            .components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-        return lines.last
-    }
-
-    private func formatSize(_ bytes: Int) -> String {
-        ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
-    }
-
-    private func iconForFile(_ url: URL) -> String {
-        switch url.pathExtension.lowercased() {
-        case "json": return "doc.text.fill"
-        case "csv": return "tablecells.fill"
-        case "txt", "log": return "doc.plaintext.fill"
-        case "sqlite", "db": return "cylinder.fill"
-        default:
-            var isDir: ObjCBool = false
-            FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir)
-            return isDir.boolValue ? "folder.fill" : "doc.fill"
-        }
     }
 
     private var sectionBackground: some View {
@@ -343,10 +363,10 @@ struct HistoryPage: View {
             )
     }
 
-    private func toggleStatus(for entry: HistoryEntry) {
-        let nextValue = !entry.isDone
-        statusStore.setDone(nextValue, for: entry.fileURL)
-        updateStatus(for: entry.fileURL, isDone: nextValue)
+    private func toggleStatus(for fileURL: URL) {
+        let nextValue = !statusStore.isDone(for: fileURL)
+        statusStore.setDone(nextValue, for: fileURL)
+        updateStatus(for: fileURL, isDone: nextValue)
     }
 
     private func updateStatus(for fileURL: URL, isDone: Bool) {
@@ -354,6 +374,175 @@ struct HistoryPage: View {
             guard let entryIndex = sections[sectionIndex].entries.firstIndex(where: { $0.fileURL == fileURL }) else { continue }
             sections[sectionIndex].entries[entryIndex].isDone = isDone
             return
+        }
+    }
+}
+
+enum HistoryDataBuilder {
+    struct Bucket: Identifiable {
+        let id: Date
+        let label: String
+        let totalSeconds: Int
+        let fileCount: Int
+    }
+
+    struct Result {
+        let entries: [HistoryEntry]
+        let summaryText: String?
+    }
+
+    static func makeResult(
+        for fileURLs: [URL],
+        mode: HistoryViewMode,
+        isDone: (URL) -> Bool,
+        calendar: Calendar = .autoupdatingCurrent
+    ) -> Result {
+        switch mode {
+        case .files:
+            let entries = fileURLs
+                .map { makeFileEntry($0, isDone: isDone) }
+                .sorted {
+                    $0.title.localizedStandardCompare($1.title) == .orderedDescending
+                }
+            return Result(entries: entries, summaryText: nil)
+        case .week, .month:
+            let buckets = groupedBuckets(for: fileURLs, mode: mode, calendar: calendar)
+            let totalSeconds = buckets.reduce(0) { $0 + $1.totalSeconds }
+            let entries = buckets.map { bucket in
+                HistoryEntry(
+                    title: bucket.label,
+                    fileURL: nil,
+                    secondaryText: bucket.fileCount == 1 ? "1 file" : "\(bucket.fileCount) files",
+                    accessoryText: nil,
+                    trailingText: formatSummaryDuration(bucket.totalSeconds),
+                    icon: "clock.fill",
+                    isDone: false,
+                    allowsStatusToggle: false
+                )
+            }
+            return Result(entries: entries, summaryText: formatSummaryDuration(totalSeconds))
+        }
+    }
+
+    static func groupedBuckets(
+        for fileURLs: [URL],
+        mode: HistoryViewMode,
+        calendar: Calendar = .autoupdatingCurrent
+    ) -> [Bucket] {
+        let snapshots = fileURLs.compactMap { snapshot(for: $0) }
+        let grouped = Dictionary(grouping: snapshots) { snapshot in
+            bucketStartDate(for: snapshot.date, mode: mode, calendar: calendar)
+        }
+
+        return grouped.map { startDate, snapshots in
+            Bucket(
+                id: startDate,
+                label: bucketLabel(for: startDate, mode: mode),
+                totalSeconds: snapshots.reduce(0) { $0 + $1.totalSeconds },
+                fileCount: snapshots.count
+            )
+        }
+        .sorted { $0.id > $1.id }
+    }
+
+    static func formatSummaryDuration(_ totalSeconds: Int) -> String {
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
+    private struct Snapshot {
+        let date: Date
+        let totalSeconds: Int
+    }
+
+    private static func makeFileEntry(_ fileURL: URL, isDone: (URL) -> Bool) -> HistoryEntry {
+        let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
+        let contents = (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
+        let lastRecord = Self.readLastRecord(from: contents)
+
+        return HistoryEntry(
+            title: fileURL.lastPathComponent,
+            fileURL: fileURL,
+            secondaryText: lastRecord,
+            accessoryText: formatSize(values?.fileSize ?? 0),
+            trailingText: nil,
+            icon: iconForFile(fileURL),
+            isDone: isDone(fileURL),
+            allowsStatusToggle: true
+        )
+    }
+
+    private static func snapshot(for fileURL: URL) -> Snapshot? {
+        let contents = (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
+        guard let totalSeconds = ClockModel.parseElapsedSeconds(from: contents) else { return nil }
+        let values = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey])
+        let date = fileDateKey(for: fileURL) ?? values?.contentModificationDate ?? Date()
+        return Snapshot(date: date, totalSeconds: totalSeconds)
+    }
+
+    private static func fileDateKey(for fileURL: URL) -> Date? {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: fileURL.deletingPathExtension().lastPathComponent)
+    }
+
+    private static func bucketStartDate(for date: Date, mode: HistoryViewMode, calendar: Calendar) -> Date {
+        switch mode {
+        case .files:
+            return date
+        case .week:
+            return calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? date
+        case .month:
+            return calendar.dateInterval(of: .month, for: date)?.start ?? date
+        }
+    }
+
+    private static func bucketLabel(for date: Date, mode: HistoryViewMode) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar.autoupdatingCurrent
+        formatter.timeZone = .autoupdatingCurrent
+        switch mode {
+        case .files:
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+            return formatter.string(from: date)
+        case .week:
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+            return "Week of \(formatter.string(from: date))"
+        case .month:
+            formatter.dateFormat = "MMMM yyyy"
+            return formatter.string(from: date)
+        }
+    }
+
+    private static func readLastRecord(from contents: String) -> String? {
+        let lines = contents
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return lines.last
+    }
+
+    private static func formatSize(_ bytes: Int) -> String {
+        ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+    }
+
+    private static func iconForFile(_ url: URL) -> String {
+        switch url.pathExtension.lowercased() {
+        case "json": return "doc.text.fill"
+        case "csv": return "tablecells.fill"
+        case "txt", "log": return "doc.plaintext.fill"
+        case "sqlite", "db": return "cylinder.fill"
+        default:
+            var isDir: ObjCBool = false
+            FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir)
+            return isDir.boolValue ? "folder.fill" : "doc.fill"
         }
     }
 }
