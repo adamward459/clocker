@@ -144,10 +144,6 @@ struct MainMenuPage: View {
                                 } else if appUpdateService.status.isBusy {
                                     ProgressView()
                                         .controlSize(.small)
-                                } else {
-                                    Image(systemName: "chevron.right")
-                                        .font(ClockerTheme.Fonts.chevron)
-                                        .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
                                 }
                             }
                             .contentShape(Rectangle())
