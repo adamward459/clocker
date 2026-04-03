@@ -7,6 +7,7 @@ struct MainMenuPage: View {
     var navigateToHistory: () -> Void
     var navigateToProjects: () -> Void
     @State private var visibleToast: UpdateToast?
+    @State private var isShowingResetConfirmation = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -49,7 +50,9 @@ struct MainMenuPage: View {
                                 .controlSize(.small)
                         }
                         if !clockModel.isRunning && clockModel.displayTime != "00:00" {
-                            Button("Reset") { clockModel.reset() }
+                            Button("Reset") {
+                                isShowingResetConfirmation = true
+                            }
                                 .buttonStyle(.bordered)
                                 .controlSize(.small)
                         }
@@ -198,6 +201,18 @@ struct MainMenuPage: View {
                 message: Text(notice.message),
                 dismissButton: .default(Text("OK"))
             )
+        }
+        .confirmationDialog(
+            "Reset timer?",
+            isPresented: $isShowingResetConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset", role: .destructive) {
+                clockModel.reset()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will clear today’s tracked time for the current project.")
         }
         .onReceive(appUpdateService.$toast.compactMap { $0 }) { toast in
             withAnimation(.easeInOut(duration: 0.2)) {
