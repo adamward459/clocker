@@ -80,6 +80,52 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(ClockModel.formatElapsed(3661), "1:01:01")
     }
 
+    func testClockModelParsesSessionDurationsAndTrailingSeparator() {
+        let contents = """
+        00:01
+        00:02
+        ---
+        00:03
+        00:04
+        """
+
+        XCTAssertEqual(ClockModel.parseSessionDurations(from: contents), [2, 4])
+        XCTAssertEqual(ClockModel.parseElapsedSeconds(from: contents), 4)
+        XCTAssertEqual(ClockModel.parseElapsedSeconds(from: "00:01\n---\n"), 0)
+    }
+
+    func testTimeWriterBeginsNewSessionWithSeparator() throws {
+        let writer = TimeWriter(storageURL: tempDirectory)
+        writer.persist("00:01")
+        writer.waitUntilIdle()
+
+        writer.beginNewSession(projectID: ClockProject.defaultID)
+        writer.persist("00:02")
+        writer.waitUntilIdle()
+
+        let fileURL = todayFileURL()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fileURL.path))
+        XCTAssertEqual(try String(contentsOf: fileURL, encoding: .utf8), "00:01\n---\n00:02\n")
+    }
+
+    func testClockModelStartNewSessionAppendsSeparatorAndResetsDisplay() throws {
+        let writer = TimeWriter(storageURL: tempDirectory)
+        writer.persist("00:05")
+        writer.waitUntilIdle()
+
+        let store = ProjectStore(storageURL: tempDirectory)
+        let model = ClockModel(projectStore: store, timeWriter: writer)
+
+        model.startNewSession()
+        model.stop()
+        writer.waitUntilIdle()
+
+        let fileURL = todayFileURL()
+        XCTAssertEqual(model.displayTime, "00:00")
+        XCTAssertFalse(model.isRunning)
+        XCTAssertEqual(try String(contentsOf: fileURL, encoding: .utf8), "00:05\n---\n")
+    }
+
     func testHistoryDataBuilderBuildsFileEntriesInFilesMode() throws {
         let fileURL = try createHistoryFile(name: "2026-01-01.txt", contents: "00:00:59\n")
 
@@ -92,10 +138,37 @@ final class ClockerTests: XCTestCase {
         XCTAssertNil(result.summaryText)
         XCTAssertEqual(result.entries.count, 1)
         XCTAssertEqual(result.entries[0].title, "2026-01-01.txt")
-        XCTAssertEqual(result.entries[0].secondaryText, "00:00:59")
+        XCTAssertEqual(result.entries[0].secondaryText, "1 session")
+        XCTAssertEqual(result.entries[0].trailingText, "00:00:59")
         XCTAssertNotNil(result.entries[0].accessoryText)
         XCTAssertTrue(result.entries[0].allowsStatusToggle)
         XCTAssertTrue(result.entries[0].isDone)
+        XCTAssertEqual(result.entries[0].children.count, 1)
+        XCTAssertEqual(result.entries[0].children[0].title, "Session 1")
+        XCTAssertEqual(result.entries[0].children[0].trailingText, "00:00:59")
+    }
+
+    func testHistoryDataBuilderBuildsSessionChildrenInFilesMode() throws {
+        let fileURL = try createHistoryFile(
+            name: "2026-01-02.txt",
+            contents: "00:01\n00:02\n---\n00:01\n00:02\n00:03\n"
+        )
+
+        let result = HistoryDataBuilder.makeResult(
+            for: [fileURL],
+            mode: .files,
+            isDone: { _ in false }
+        )
+
+        XCTAssertEqual(result.entries.count, 1)
+        let day = result.entries[0]
+        XCTAssertEqual(day.secondaryText, "2 sessions")
+        XCTAssertEqual(day.trailingText, "00:00:05")
+        XCTAssertEqual(day.children.count, 2)
+        XCTAssertEqual(day.children[0].title, "Session 2")
+        XCTAssertEqual(day.children[0].trailingText, "00:00:03")
+        XCTAssertEqual(day.children[1].title, "Session 1")
+        XCTAssertEqual(day.children[1].trailingText, "00:00:02")
     }
 
     func testHistoryDataBuilderGroupsWeeksAcrossBoundaries() throws {

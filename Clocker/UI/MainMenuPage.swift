@@ -48,6 +48,11 @@ struct MainMenuPage: View {
                             Button("Start") { clockModel.start() }
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.small)
+                            if clockModel.displayTime != "00:00" {
+                                Button("New Session") { clockModel.startNewSession() }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                            }
                         }
                         if !clockModel.isRunning && clockModel.displayTime != "00:00" {
                             Button("Reset") {

@@ -39,6 +39,23 @@ final class TimeWriter: @unchecked Sendable {
         }
     }
 
+    /// Marks the boundary between two sessions on the same day.
+    func beginNewSession(projectID: String) {
+        let url = storageURL
+        queue.async {
+            let fm = FileManager.default
+            let fileURL = Self.currentDayFileURL(storageURL: url, projectID: projectID)
+            guard fm.fileExists(atPath: fileURL.path) else { return }
+
+            let line = ClockModel.sessionSeparator + "\n"
+            if let handle = try? FileHandle(forWritingTo: fileURL) {
+                handle.seekToEndOfFile()
+                handle.write(Data(line.utf8))
+                handle.closeFile()
+            }
+        }
+    }
+
     /// Removes today's record from disk.
     /// Uses the same queue as writes so any queued persist finishes first.
     func clearTodayRecord() {

@@ -2,6 +2,8 @@ import SwiftUI
 import Combine
 
 final class ClockModel: ObservableObject, @unchecked Sendable {
+    static let sessionSeparator = "---"
+
     enum RestoreState: Equatable {
         case idle
         case restoring
@@ -38,7 +40,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         return documents.appendingPathComponent(storageFolderName, isDirectory: true)
     }
 
-    var resolvedStorageURL: URL { Self.storageURL }
+    var resolvedStorageURL: URL { storageURL }
     var activeProject: ClockProject {
         projects.first(where: { $0.id == activeProjectID }) ?? .defaultProject
     }
@@ -72,6 +74,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
     private var timer: AnyCancellable?
     private let timeWriter: TimeWriter
     private let projectStore: ProjectStore
+    private let storageURL: URL
     private var elapsedSeconds: Int = 0
     private var projectElapsedSeconds: [String: Int] = [:]
     private var restoreFeedbackWorkItem: DispatchWorkItem?
@@ -94,6 +97,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
     init(projectStore: ProjectStore, timeWriter: TimeWriter) {
         self.projectStore = projectStore
         self.timeWriter = timeWriter
+        self.storageURL = timeWriter.storageURL
         let loadedProjects = projectStore.loadProjects()
         self.projects = loadedProjects
         self.activeProjectID = projectStore.loadActiveProjectID(projects: loadedProjects)
@@ -126,6 +130,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         DispatchQueue.global(qos: .utility).async { [url, weak self] in
             let contents = (try? String(contentsOf: url, encoding: .utf8)) ?? ""
             let restoredSeconds = Self.parseElapsedSeconds(from: contents)
+            let sessionDurations = Self.parseSessionDurations(from: contents)
 
             DispatchQueue.main.async {
                 guard let self else { return }
@@ -133,6 +138,11 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
                 self.restoreFeedbackWorkItem = nil
 
                 guard let restoredSeconds else {
+                    self.restoreState = .unavailable
+                    return
+                }
+
+                if restoredSeconds == 0 && sessionDurations.isEmpty {
                     self.restoreState = .unavailable
                     return
                 }
@@ -151,6 +161,39 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
     func start() {
         guard !isRunning else { return }
         handleDayChangeIfNeeded()
+        restoreState = .idle
+        isRunning = true
+        onRunningStateChange?(true)
+        timer = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.handleDayChangeIfNeeded()
+                self.elapsedSeconds += 1
+                self.projectElapsedSeconds[self.activeProjectID] = self.elapsedSeconds
+                let formatted = Self.formatElapsed(self.elapsedSeconds)
+                self.displayTime = formatted
+                self.onTimeChange?(formatted)
+                self.timeWriter.persist(formatted, projectID: self.activeProjectID)
+            }
+    }
+
+    func startNewSession() {
+        guard !isRunning else { return }
+        handleDayChangeIfNeeded()
+
+        let currentDayURL = Self.currentDayFileURL(storageURL: resolvedStorageURL, projectID: activeProjectID)
+        if FileManager.default.fileExists(atPath: currentDayURL.path) {
+            timeWriter.beginNewSession(projectID: activeProjectID)
+        }
+
+        elapsedSeconds = 0
+        projectElapsedSeconds[activeProjectID] = 0
+        trackingDate = Self.todayString()
+        displayTime = Self.formatElapsed(0)
+        onTimeChange?(displayTime)
+        restoreState = .idle
+
         isRunning = true
         onRunningStateChange?(true)
         timer = Timer.publish(every: 1, on: .main, in: .common)
@@ -268,9 +311,36 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
+        guard !lines.isEmpty else { return nil }
 
-        guard let lastLine = lines.last else { return nil }
-        return parseTimeString(lastLine)
+        if lines.last == Self.sessionSeparator {
+            return 0
+        }
+
+        return parseSessionDurations(from: contents).last
+    }
+
+    static func parseSessionDurations(from contents: String) -> [Int] {
+        let lines = contents
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        guard !lines.isEmpty else { return [] }
+
+        var sessions: [[String]] = [[]]
+        for line in lines {
+            if line == Self.sessionSeparator {
+                sessions.append([])
+            } else {
+                sessions[sessions.count - 1].append(line)
+            }
+        }
+
+        return sessions.compactMap { sessionLines in
+            guard let lastLine = sessionLines.last else { return nil }
+            return parseTimeString(lastLine)
+        }
     }
 
     static func parseTimeString(_ value: String) -> Int? {

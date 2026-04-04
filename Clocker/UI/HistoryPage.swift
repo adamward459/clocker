@@ -20,7 +20,7 @@ enum HistoryViewMode: String, CaseIterable, Identifiable {
 }
 
 struct HistoryEntry: Identifiable {
-    let id = UUID()
+    let id: String
     let title: String
     let fileURL: URL?
     let secondaryText: String?
@@ -29,6 +29,31 @@ struct HistoryEntry: Identifiable {
     let icon: String
     var isDone: Bool
     let allowsStatusToggle: Bool
+    var children: [HistoryEntry]
+
+    init(
+        id: String = UUID().uuidString,
+        title: String,
+        fileURL: URL?,
+        secondaryText: String?,
+        accessoryText: String?,
+        trailingText: String?,
+        icon: String,
+        isDone: Bool,
+        allowsStatusToggle: Bool,
+        children: [HistoryEntry] = []
+    ) {
+        self.id = id
+        self.title = title
+        self.fileURL = fileURL
+        self.secondaryText = secondaryText
+        self.accessoryText = accessoryText
+        self.trailingText = trailingText
+        self.icon = icon
+        self.isDone = isDone
+        self.allowsStatusToggle = allowsStatusToggle
+        self.children = children
+    }
 }
 
 struct HistorySection: Identifiable {
@@ -48,6 +73,7 @@ struct HistoryPage: View {
     var isVisible: Bool = false
     @State private var backHovered = false
     @State private var sections: [HistorySection] = []
+    @State private var expandedEntryIDs: Set<String> = []
     @State private var errorMessage: String?
     private let statusStore = HistoryRecordStatusStore()
 
@@ -150,7 +176,7 @@ struct HistoryPage: View {
 
                         VStack(spacing: 0) {
                             ForEach(Array(section.entries.enumerated()), id: \.element.id) { index, entry in
-                                historyEntryRow(entry)
+                                historyEntryNode(entry)
 
                                 if index < section.entries.count - 1 {
                                     Divider()
@@ -169,8 +195,30 @@ struct HistoryPage: View {
         .frame(maxHeight: ClockerTheme.Size.historyMaxHeight)
     }
 
+    private func historyEntryNode(_ entry: HistoryEntry, depth: Int = 0) -> AnyView {
+        AnyView(
+            VStack(alignment: .leading, spacing: 0) {
+                historyEntryRow(entry, depth: depth)
+
+                if !entry.children.isEmpty, isExpanded(entry) {
+                    VStack(spacing: 0) {
+                        ForEach(Array(entry.children.enumerated()), id: \.element.id) { index, child in
+                            historyEntryNode(child, depth: depth + 1)
+
+                            if index < entry.children.count - 1 {
+                                Divider()
+                                    .padding(.leading, 60)
+                                    .padding(.trailing, 18)
+                            }
+                        }
+                    }
+                }
+            }
+        )
+    }
+
     @ViewBuilder
-    private func historyEntryRow(_ entry: HistoryEntry) -> some View {
+    private func historyEntryRow(_ entry: HistoryEntry, depth: Int) -> some View {
         let rowFill: Color = entry.allowsStatusToggle
             ? (entry.isDone ? Color.green.opacity(0.07) : Color.red.opacity(0.05))
             : ClockerTheme.Colors.hoverFill.opacity(0.12)
@@ -206,22 +254,40 @@ struct HistoryPage: View {
             }
             Spacer()
 
-            if entry.allowsStatusToggle, let fileURL = entry.fileURL {
-                Button {
-                    toggleStatus(for: fileURL)
-                } label: {
-                    statusBadge(isDone: entry.isDone)
+            HStack(spacing: 8) {
+                if !entry.children.isEmpty {
+                    Button {
+                        toggleExpansion(for: entry.id)
+                    } label: {
+                        Image(systemName: isExpanded(entry) ? "chevron.down" : "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 16, height: 16)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(isExpanded(entry) ? "Collapse session list" : "Expand session list")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(entry.isDone ? "Mark as not done" : "Mark as done")
-            } else if let trailingText = entry.trailingText {
-                Text(trailingText)
-                    .font(ClockerTheme.Fonts.navTitle)
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
+
+                if let trailingText = entry.trailingText {
+                    Text(trailingText)
+                        .font(ClockerTheme.Fonts.navTitle)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+
+                if entry.allowsStatusToggle, let fileURL = entry.fileURL {
+                    Button {
+                        toggleStatus(for: fileURL)
+                    } label: {
+                        statusBadge(isDone: entry.isDone)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(entry.isDone ? "Mark as not done" : "Mark as done")
+                }
             }
         }
-        .padding(.horizontal, 18)
+        .padding(.leading, 18 + CGFloat(depth) * 14)
+        .padding(.trailing, 18)
         .padding(.vertical, ClockerTheme.Spacing.rowVertical)
         .background(
             RoundedRectangle(cornerRadius: ClockerTheme.Size.cornerRadius, style: .continuous)
@@ -359,8 +425,20 @@ struct HistoryPage: View {
             .padding(4)
             .background(
                 Circle()
-                    .fill(color.opacity(0.12))
+                .fill(color.opacity(0.12))
             )
+    }
+
+    private func isExpanded(_ entry: HistoryEntry) -> Bool {
+        expandedEntryIDs.contains(entry.id)
+    }
+
+    private func toggleExpansion(for entryID: String) {
+        if expandedEntryIDs.contains(entryID) {
+            expandedEntryIDs.remove(entryID)
+        } else {
+            expandedEntryIDs.insert(entryID)
+        }
     }
 
     private func toggleStatus(for fileURL: URL) {
@@ -400,7 +478,7 @@ enum HistoryDataBuilder {
         switch mode {
         case .files:
             let entries = fileURLs
-                .map { makeFileEntry($0, isDone: isDone) }
+                .compactMap { makeFileEntry($0, isDone: isDone) }
                 .sorted {
                     $0.title.localizedStandardCompare($1.title) == .orderedDescending
                 }
@@ -410,6 +488,7 @@ enum HistoryDataBuilder {
             let totalSeconds = buckets.reduce(0) { $0 + $1.totalSeconds }
             let entries = buckets.map { bucket in
                 HistoryEntry(
+                    id: "\(bucket.id.timeIntervalSince1970)",
                     title: bucket.label,
                     fileURL: nil,
                     secondaryText: bucket.fileCount == 1 ? "1 file" : "\(bucket.fileCount) files",
@@ -417,7 +496,8 @@ enum HistoryDataBuilder {
                     trailingText: formatSummaryDuration(bucket.totalSeconds),
                     icon: "clock.fill",
                     isDone: false,
-                    allowsStatusToggle: false
+                    allowsStatusToggle: false,
+                    children: []
                 )
             }
             return Result(entries: entries, summaryText: formatSummaryDuration(totalSeconds))
@@ -457,26 +537,46 @@ enum HistoryDataBuilder {
         let totalSeconds: Int
     }
 
-    private static func makeFileEntry(_ fileURL: URL, isDone: (URL) -> Bool) -> HistoryEntry {
+    private static func makeFileEntry(_ fileURL: URL, isDone: (URL) -> Bool) -> HistoryEntry? {
         let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
         let contents = (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
-        let lastRecord = Self.readLastRecord(from: contents)
+        let sessionDurations = ClockModel.parseSessionDurations(from: contents)
+        guard !sessionDurations.isEmpty else { return nil }
+
+        let totalSeconds = sessionDurations.reduce(0, +)
+        let children = sessionDurations.enumerated().reversed().map { index, duration -> HistoryEntry in
+            HistoryEntry(
+                id: "\(fileURL.path)#session-\(index)",
+                title: "Session \(index + 1)",
+                fileURL: nil,
+                secondaryText: nil,
+                accessoryText: nil,
+                trailingText: formatSummaryDuration(duration),
+                icon: "clock.fill",
+                isDone: false,
+                allowsStatusToggle: false,
+                children: []
+            )
+        }
 
         return HistoryEntry(
+            id: fileURL.path,
             title: fileURL.lastPathComponent,
             fileURL: fileURL,
-            secondaryText: lastRecord,
+            secondaryText: sessionDurations.count == 1 ? "1 session" : "\(sessionDurations.count) sessions",
             accessoryText: formatSize(values?.fileSize ?? 0),
-            trailingText: nil,
+            trailingText: formatSummaryDuration(totalSeconds),
             icon: iconForFile(fileURL),
             isDone: isDone(fileURL),
-            allowsStatusToggle: true
+            allowsStatusToggle: true,
+            children: children
         )
     }
 
     private static func snapshot(for fileURL: URL) -> Snapshot? {
         let contents = (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
-        guard let totalSeconds = ClockModel.parseElapsedSeconds(from: contents) else { return nil }
+        let totalSeconds = ClockModel.parseSessionDurations(from: contents).reduce(0, +)
+        guard totalSeconds > 0 else { return nil }
         let values = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey])
         let date = fileDateKey(for: fileURL) ?? values?.contentModificationDate ?? Date()
         return Snapshot(date: date, totalSeconds: totalSeconds)
