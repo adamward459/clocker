@@ -1,7 +1,9 @@
 import XCTest
 @testable import Clocker
 import AppUpdater
+import SwiftData
 
+@MainActor
 final class ClockerTests: XCTestCase {
     private var tempDirectory: URL!
 
@@ -113,8 +115,8 @@ final class ClockerTests: XCTestCase {
         writer.persist("00:05")
         writer.waitUntilIdle()
 
-        let store = ProjectStore(storageURL: tempDirectory)
-        let model = ClockModel(projectStore: store, timeWriter: writer)
+        let store = try makeProjectStore(legacyStorageURL: tempDirectory)
+        let model = ClockModel(projectRepository: store, timeWriter: writer)
 
         model.startNewSession()
         model.stop()
@@ -252,7 +254,7 @@ final class ClockerTests: XCTestCase {
     }
 
     func testProjectStorePersistsProjectsAndActiveSelection() {
-        let store = ProjectStore(storageURL: tempDirectory)
+        let store = try! makeProjectStore(legacyStorageURL: tempDirectory)
         let projects = [
             ClockProject.defaultProject,
             ClockProject(id: "project-123", name: "Design")
@@ -265,10 +267,50 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(store.loadActiveProjectID(projects: projects), "project-123")
     }
 
+    func testProjectStoreImportsLegacyJSONOnce() throws {
+        let legacyProjects = [
+            ClockProject(id: "project-123", name: "Design", lastUsedAt: Date(timeIntervalSince1970: 10)),
+            ClockProject(id: "project-456", name: "Ops", lastUsedAt: Date(timeIntervalSince1970: 20))
+        ]
+        let projectsData = try JSONEncoder().encode(legacyProjects)
+        try projectsData.write(to: tempDirectory.appendingPathComponent("projects.json"))
+
+        let stateData = Data(#"{"activeProjectID":"project-456"}"#.utf8)
+        try stateData.write(to: tempDirectory.appendingPathComponent("state.json"))
+
+        let storeURL = tempDirectory.appendingPathComponent("SwiftData.store")
+        let store = try makeProjectStore(
+            legacyStorageURL: tempDirectory,
+            modelStoreURL: storeURL
+        )
+
+        XCTAssertEqual(
+            store.loadProjects(),
+            [ClockProject.defaultProject] + legacyProjects
+        )
+        XCTAssertEqual(
+            store.loadActiveProjectID(projects: store.loadProjects()),
+            "project-456"
+        )
+
+        let reloadedStore = try makeProjectStore(
+            legacyStorageURL: tempDirectory,
+            modelStoreURL: storeURL
+        )
+        XCTAssertEqual(
+            reloadedStore.loadProjects(),
+            [ClockProject.defaultProject] + legacyProjects
+        )
+        XCTAssertEqual(
+            reloadedStore.loadActiveProjectID(projects: reloadedStore.loadProjects()),
+            "project-456"
+        )
+    }
+
     func testClockModelCreatesAndSwitchesProjects() {
-        let store = ProjectStore(storageURL: tempDirectory)
+        let store = try! makeProjectStore(legacyStorageURL: tempDirectory)
         let writer = TimeWriter(storageURL: tempDirectory)
-        let model = ClockModel(projectStore: store, timeWriter: writer)
+        let model = ClockModel(projectRepository: store, timeWriter: writer)
 
         XCTAssertEqual(model.activeProjectID, ClockProject.defaultID)
         XCTAssertEqual(model.activeProjectName, ClockProject.defaultProjectName)
@@ -320,6 +362,22 @@ final class ClockerTests: XCTestCase {
 
     private func todayFileURL() -> URL {
         ClockModel.currentDayFileURL(storageURL: tempDirectory)
+    }
+
+    private func makeProjectStore(legacyStorageURL: URL, modelStoreURL: URL? = nil) throws -> ProjectStore {
+        let container = try makeModelContainer(storeURL: modelStoreURL)
+        return ProjectStore(legacyStorageURL: legacyStorageURL, modelContainer: container)
+    }
+
+    private func makeModelContainer(storeURL: URL? = nil) throws -> ModelContainer {
+        let schema = Schema([StoredProject.self, StoredAppState.self])
+        if let storeURL {
+            let configuration = ModelConfiguration(url: storeURL)
+            return try ModelContainer(for: schema, configurations: [configuration])
+        }
+
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        return try ModelContainer(for: schema, configurations: [configuration])
     }
 
     private func createHistoryFile(name: String, contents: String) throws -> URL {

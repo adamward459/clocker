@@ -1,11 +1,20 @@
 import AppKit
 import SwiftUI
+import SwiftData
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
-    private let clockModel = ClockModel()
+    private let modelContainer = ProjectStore.makeModelContainer()
+    private lazy var projectRepository: ProjectStore = ProjectStore(
+        legacyStorageURL: ClockModel.storageURL,
+        modelContainer: modelContainer
+    )
+    private lazy var clockModel = ClockModel(
+        projectRepository: projectRepository,
+        timeWriter: TimeWriter(storageURL: ClockModel.storageURL)
+    )
     let loginItemService = LoginItemService()
     let appUpdateService = AppUpdateService()
 

@@ -1,8 +1,9 @@
 import SwiftUI
 import Combine
 
+@MainActor
 final class ClockModel: ObservableObject, @unchecked Sendable {
-    static let sessionSeparator = "---"
+    nonisolated static let sessionSeparator = "---"
 
     enum RestoreState: Equatable {
         case idle
@@ -23,7 +24,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         storageFolderName(bundleIdentifier: Bundle.main.bundleIdentifier)
     }
 
-    static func storageFolderName(bundleIdentifier: String?) -> String {
+    nonisolated static func storageFolderName(bundleIdentifier: String?) -> String {
         if bundleIdentifier?.contains(".dev") == true {
             return "Clocker-Dev"
         }
@@ -73,41 +74,28 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
 
     private var timer: AnyCancellable?
     private let timeWriter: TimeWriter
-    private let projectStore: ProjectStore
+    private let projectStore: any ProjectRepository
     private let storageURL: URL
     private var elapsedSeconds: Int = 0
     private var projectElapsedSeconds: [String: Int] = [:]
     private var restoreFeedbackWorkItem: DispatchWorkItem?
-    private var trackingDate: String = ClockModel.todayString()
+    private var trackingDate: String
 
-    convenience init() {
-        self.init(
-            projectStore: ProjectStore(storageURL: Self.storageURL),
-            timeWriter: TimeWriter(storageURL: Self.storageURL)
-        )
-    }
-
-    convenience init(timeWriter: TimeWriter) {
-        self.init(
-            projectStore: ProjectStore(storageURL: timeWriter.storageURL),
-            timeWriter: timeWriter
-        )
-    }
-
-    init(projectStore: ProjectStore, timeWriter: TimeWriter) {
-        self.projectStore = projectStore
+    init(projectRepository: any ProjectRepository, timeWriter: TimeWriter) {
+        self.projectStore = projectRepository
         self.timeWriter = timeWriter
         self.storageURL = timeWriter.storageURL
-        let loadedProjects = projectStore.loadProjects()
+        self.trackingDate = Self.todayString()
+        let loadedProjects = projectRepository.loadProjects()
         self.projects = loadedProjects
-        self.activeProjectID = projectStore.loadActiveProjectID(projects: loadedProjects)
+        self.activeProjectID = projectRepository.loadActiveProjectID(projects: loadedProjects)
 
         if !loadedProjects.contains(where: { $0.id == activeProjectID }) {
             activeProjectID = ClockProject.defaultID
         }
 
-        projectStore.saveProjects(loadedProjects)
-        projectStore.saveActiveProjectID(activeProjectID)
+        projectRepository.saveProjects(loadedProjects)
+        projectRepository.saveActiveProjectID(activeProjectID)
     }
 
     func restoreTodayRecordIfAvailable() {
@@ -298,7 +286,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         projectStore.saveProjects(projects)
     }
 
-    static func currentDayFileURL(storageURL: URL, projectID: String = ClockProject.defaultID, date: Date = Date()) -> URL {
+    nonisolated static func currentDayFileURL(storageURL: URL, projectID: String = ClockProject.defaultID, date: Date = Date()) -> URL {
         let directoryURL = projectID == ClockProject.defaultID ? storageURL : storageURL.appendingPathComponent(projectID, isDirectory: true)
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
@@ -306,7 +294,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         return directoryURL.appendingPathComponent(fileName)
     }
 
-    static func parseElapsedSeconds(from contents: String) -> Int? {
+    nonisolated static func parseElapsedSeconds(from contents: String) -> Int? {
         let lines = contents
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -320,7 +308,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         return parseSessionDurations(from: contents).last
     }
 
-    static func parseSessionDurations(from contents: String) -> [Int] {
+    nonisolated static func parseSessionDurations(from contents: String) -> [Int] {
         let lines = contents
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -343,7 +331,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         }
     }
 
-    static func parseTimeString(_ value: String) -> Int? {
+    nonisolated static func parseTimeString(_ value: String) -> Int? {
         let parts = value.split(separator: ":").map(String.init)
         guard parts.count == 2 || parts.count == 3 else { return nil }
 
@@ -357,7 +345,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         }
     }
 
-    static func formatElapsed(_ totalSeconds: Int) -> String {
+    nonisolated static func formatElapsed(_ totalSeconds: Int) -> String {
         let h = totalSeconds / 3600
         let m = (totalSeconds % 3600) / 60
         let s = totalSeconds % 60
