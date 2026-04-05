@@ -327,7 +327,6 @@ struct HistoryPage: View {
             )
 
             var nextSections: [HistorySection] = []
-            let ignoredRootFileNames: Set<String> = ["projects.json", "state.json"]
 
             let sortedContents = contents.sorted {
                 $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedDescending
@@ -336,7 +335,7 @@ struct HistoryPage: View {
             let rootFiles = sortedContents.filter { fileURL in
                 var isDirectory: ObjCBool = false
                 fm.fileExists(atPath: fileURL.path, isDirectory: &isDirectory)
-                return !isDirectory.boolValue && !ignoredRootFileNames.contains(fileURL.lastPathComponent)
+                return !isDirectory.boolValue
             }
 
             if let rootSection = makeSection(id: ClockProject.defaultID, entries: rootFiles) {

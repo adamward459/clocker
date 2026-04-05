@@ -175,6 +175,7 @@ final class ProjectStore: ProjectRepository {
                 modelContext.insert(StoredAppState())
                 try? modelContext.save()
             }
+            cleanupLegacyProjectFiles()
             return
         }
 
@@ -194,6 +195,7 @@ final class ProjectStore: ProjectRepository {
 
         modelContext.insert(StoredAppState(activeProjectID: loadLegacyActiveProjectID(validProjectIDs: Set(projectsToStore.map(\.id)))))
         try? modelContext.save()
+        cleanupLegacyProjectFiles()
     }
 
     private func fetchStoredProjects() -> [StoredProject] {
@@ -249,5 +251,13 @@ final class ProjectStore: ProjectRepository {
         }
 
         return decoded.activeProjectID
+    }
+
+    private func cleanupLegacyProjectFiles() {
+        let fileNames = ["projects.json", "state.json"]
+        for fileName in fileNames {
+            let url = legacyStorageURL.appendingPathComponent(fileName)
+            try? FileManager.default.removeItem(at: url)
+        }
     }
 }

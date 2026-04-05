@@ -292,6 +292,8 @@ final class ClockerTests: XCTestCase {
             store.loadActiveProjectID(projects: store.loadProjects()),
             "project-456"
         )
+        XCTAssertFalse(FileManager.default.fileExists(atPath: tempDirectory.appendingPathComponent("projects.json").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: tempDirectory.appendingPathComponent("state.json").path))
 
         let reloadedStore = try makeProjectStore(
             legacyStorageURL: tempDirectory,
