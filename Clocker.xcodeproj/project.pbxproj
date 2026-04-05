@@ -19,6 +19,10 @@
 		542E18C82F7AF4FC000FF46B /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000011 /* LoginItemService.swift */; };
 		542E18C92F7AF4FC000FF46B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000010 /* Assets.xcassets */; };
 		542E18CA2F7AF4FC000FF46B /* ClockProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000016 /* ClockProject.swift */; };
+		542E18CD2F7AF4FC000FF46B /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000021 /* Session.swift */; };
+		542E18CE2F7AF4FC000FF46B /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000022 /* Project.swift */; };
+		542E18CF2F7AF4FC000FF46B /* ProjectSessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000023 /* ProjectSessionRepository.swift */; };
+		542E18D32F7AF4FC000FF46B /* ProjectSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000024 /* ProjectSessionService.swift */; };
 		542E18CB2F7AF4FC000FF46B /* ProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000017 /* ProjectStore.swift */; };
 		542E18CC2F7AF4FC000FF46B /* HistoryRecordStatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000019 /* HistoryRecordStatusStore.swift */; };
 		542E18D02F7AF4FC000FF46B /* ProjectsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000020 /* ProjectsPage.swift */; };
@@ -37,6 +41,10 @@
 		A00100010000000000000011 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000011 /* LoginItemService.swift */; };
 		A00100010000000000000012 /* ClockerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000012 /* ClockerTests.swift */; };
 		A00100010000000000000013 /* ClockProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000016 /* ClockProject.swift */; };
+		A00100010000000000000021 /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000021 /* Session.swift */; };
+		A00100010000000000000022 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000022 /* Project.swift */; };
+		A00100010000000000000023 /* ProjectSessionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000023 /* ProjectSessionRepository.swift */; };
+		A00100010000000000000024 /* ProjectSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000024 /* ProjectSessionService.swift */; };
 		A00100010000000000000014 /* ProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000017 /* ProjectStore.swift */; };
 		A00100010000000000000015 /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00200010000000000000018 /* AppUpdateService.swift */; };
 		A00100010000000000000016 /* AppUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = A00D00010000000000000002 /* AppUpdater */; };
@@ -71,6 +79,10 @@
 		A00200010000000000000014 /* ClockerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClockerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A00200010000000000000015 /* ClockerDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClockerDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A00200010000000000000016 /* ClockProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockProject.swift; sourceTree = "<group>"; };
+		A00200010000000000000021 /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
+		A00200010000000000000022 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+		A00200010000000000000023 /* ProjectSessionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSessionRepository.swift; sourceTree = "<group>"; };
+		A00200010000000000000024 /* ProjectSessionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSessionService.swift; sourceTree = "<group>"; };
 		A00200010000000000000017 /* ProjectStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectStore.swift; sourceTree = "<group>"; };
 		A00200010000000000000018 /* AppUpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateService.swift; sourceTree = "<group>"; };
 		A00200010000000000000019 /* HistoryRecordStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRecordStatusStore.swift; sourceTree = "<group>"; };
@@ -112,6 +124,7 @@
 				A00200010000000000000010 /* Assets.xcassets */,
 				A00200010000000000000001 /* ClockerApp.swift */,
 				A00700010000000000000003 /* Models */,
+				A00700010000000000000007 /* Repository */,
 				A00700010000000000000006 /* Services */,
 				A00700010000000000000005 /* Support */,
 				A00700010000000000000004 /* UI */,
@@ -123,9 +136,19 @@
 			isa = PBXGroup;
 			children = (
 				A00200010000000000000016 /* ClockProject.swift */,
+				A00200010000000000000022 /* Project.swift */,
+				A00200010000000000000021 /* Session.swift */,
 				A00200010000000000000002 /* ClockModel.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		A00700010000000000000007 /* Repository */ = {
+			isa = PBXGroup;
+			children = (
+				A00200010000000000000023 /* ProjectSessionRepository.swift */,
+			);
+			path = Repository;
 			sourceTree = "<group>";
 		};
 		A00700010000000000000004 /* UI */ = {
@@ -153,6 +176,7 @@
 			isa = PBXGroup;
 			children = (
 				A00200010000000000000017 /* ProjectStore.swift */,
+				A00200010000000000000024 /* ProjectSessionService.swift */,
 				A00200010000000000000009 /* TimeWriter.swift */,
 				A00200010000000000000019 /* HistoryRecordStatusStore.swift */,
 				A00200010000000000000011 /* LoginItemService.swift */,
@@ -322,6 +346,10 @@
 				A00100010000000000000011 /* LoginItemService.swift in Sources */,
 				A00100010000000000000015 /* AppUpdateService.swift in Sources */,
 				A00100010000000000000013 /* ClockProject.swift in Sources */,
+				A00100010000000000000022 /* Project.swift in Sources */,
+				A00100010000000000000021 /* Session.swift in Sources */,
+				A00100010000000000000023 /* ProjectSessionRepository.swift in Sources */,
+				A00100010000000000000024 /* ProjectSessionService.swift in Sources */,
 				A00100010000000000000014 /* ProjectStore.swift in Sources */,
 				A00100010000000000000017 /* HistoryRecordStatusStore.swift in Sources */,
 			);
@@ -344,6 +372,10 @@
 				542E18C82F7AF4FC000FF46B /* LoginItemService.swift in Sources */,
 				542E18D12F7AF4FC000FF46B /* AppUpdateService.swift in Sources */,
 				542E18CA2F7AF4FC000FF46B /* ClockProject.swift in Sources */,
+				542E18CE2F7AF4FC000FF46B /* Project.swift in Sources */,
+				542E18CD2F7AF4FC000FF46B /* Session.swift in Sources */,
+				542E18CF2F7AF4FC000FF46B /* ProjectSessionRepository.swift in Sources */,
+				542E18D32F7AF4FC000FF46B /* ProjectSessionService.swift in Sources */,
 				542E18CB2F7AF4FC000FF46B /* ProjectStore.swift in Sources */,
 				542E18CC2F7AF4FC000FF46B /* HistoryRecordStatusStore.swift in Sources */,
 			);
