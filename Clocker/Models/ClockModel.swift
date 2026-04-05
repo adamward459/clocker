@@ -78,7 +78,6 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
     private let storageURL: URL
     private var elapsedSeconds: Int = 0
     private var projectElapsedSeconds: [String: Int] = [:]
-    private var restoreFeedbackWorkItem: DispatchWorkItem?
     private var trackingDate: String
 
     init(projectRepository: any ProjectRepository, timeWriter: TimeWriter) {
@@ -89,61 +88,14 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         let loadedProjects = projectRepository.loadProjects()
         self.projects = loadedProjects
         self.activeProjectID = projectRepository.loadActiveProjectID(projects: loadedProjects)
-
-        if !loadedProjects.contains(where: { $0.id == activeProjectID }) {
-            activeProjectID = ClockProject.defaultID
-        }
-
         projectRepository.saveProjects(loadedProjects)
         projectRepository.saveActiveProjectID(activeProjectID)
+        bootstrapLiveSessionState()
     }
 
     func restoreTodayRecordIfAvailable() {
-        guard !isRunning else { return }
-
-        let url = Self.currentDayFileURL(storageURL: resolvedStorageURL, projectID: activeProjectID)
-        let fm = FileManager.default
-        guard fm.fileExists(atPath: url.path) else {
-            restoreState = .unavailable
-            return
-        }
-
-        restoreFeedbackWorkItem?.cancel()
-        let feedbackWorkItem = DispatchWorkItem { [weak self] in
-            self?.restoreState = .restoring
-        }
-        restoreFeedbackWorkItem = feedbackWorkItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: feedbackWorkItem)
-
-        DispatchQueue.global(qos: .utility).async { [url, weak self] in
-            let contents = (try? String(contentsOf: url, encoding: .utf8)) ?? ""
-            let restoredSeconds = Self.parseElapsedSeconds(from: contents)
-            let sessionDurations = Self.parseSessionDurations(from: contents)
-
-            DispatchQueue.main.async {
-                guard let self else { return }
-                self.restoreFeedbackWorkItem?.cancel()
-                self.restoreFeedbackWorkItem = nil
-
-                guard let restoredSeconds else {
-                    self.restoreState = .unavailable
-                    return
-                }
-
-                if restoredSeconds == 0 && sessionDurations.isEmpty {
-                    self.restoreState = .unavailable
-                    return
-                }
-
-                self.elapsedSeconds = restoredSeconds
-                self.projectElapsedSeconds[self.activeProjectID] = restoredSeconds
-                self.trackingDate = Self.todayString()
-                self.displayTime = Self.formatElapsed(restoredSeconds)
-                self.onTimeChange?(self.displayTime)
-                self.markActiveProjectUsed()
-                self.restoreState = .restored
-            }
-        }
+        guard timer == nil else { return }
+        bootstrapLiveSessionState()
     }
 
     func start() {
@@ -152,18 +104,8 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         restoreState = .idle
         isRunning = true
         onRunningStateChange?(true)
-        timer = Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                guard let self else { return }
-                self.handleDayChangeIfNeeded()
-                self.elapsedSeconds += 1
-                self.projectElapsedSeconds[self.activeProjectID] = self.elapsedSeconds
-                let formatted = Self.formatElapsed(self.elapsedSeconds)
-                self.displayTime = formatted
-                self.onTimeChange?(formatted)
-                self.timeWriter.persist(formatted, projectID: self.activeProjectID)
-            }
+        persistLiveSessionState()
+        beginRunningTimer()
     }
 
     func startNewSession() {
@@ -184,18 +126,8 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
 
         isRunning = true
         onRunningStateChange?(true)
-        timer = Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                guard let self else { return }
-                self.handleDayChangeIfNeeded()
-                self.elapsedSeconds += 1
-                self.projectElapsedSeconds[self.activeProjectID] = self.elapsedSeconds
-                let formatted = Self.formatElapsed(self.elapsedSeconds)
-                self.displayTime = formatted
-                self.onTimeChange?(formatted)
-                self.timeWriter.persist(formatted, projectID: self.activeProjectID)
-            }
+        persistLiveSessionState()
+        beginRunningTimer()
     }
 
     func stop() {
@@ -203,6 +135,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         timer = nil
         isRunning = false
         onRunningStateChange?(false)
+        persistLiveSessionState()
     }
 
     func reset() {
@@ -214,6 +147,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         displayTime = "00:00"
         onTimeChange?(displayTime)
         onRunningStateChange?(false)
+        persistLiveSessionState()
     }
 
     func switchToProject(_ projectID: String) {
@@ -239,6 +173,7 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         displayTime = Self.formatElapsed(restoredSeconds)
         onTimeChange?(displayTime)
         markProjectUsed(projectID)
+        persistLiveSessionState()
 
         if shouldResume {
             start()
@@ -364,9 +299,10 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         projectElapsedSeconds[activeProjectID] = 0
         displayTime = Self.formatElapsed(0)
         onTimeChange?(displayTime)
+        persistLiveSessionState()
     }
 
-    static func todayString(date: Date = Date()) -> String {
+    nonisolated static func todayString(date: Date = Date()) -> String {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
         return fmt.string(from: date)
@@ -380,6 +316,21 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         return Self.parseElapsedSeconds(from: contents)
     }
 
+    private func loadRestorableElapsedSeconds(for projectID: String) -> Int? {
+        let url = Self.currentDayFileURL(storageURL: resolvedStorageURL, projectID: projectID)
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+
+        let contents = (try? String(contentsOf: url, encoding: .utf8)) ?? ""
+        let sessionDurations = Self.parseSessionDurations(from: contents)
+        guard let restoredSeconds = Self.parseElapsedSeconds(from: contents),
+              restoredSeconds > 0 || !sessionDurations.isEmpty
+        else {
+            return nil
+        }
+
+        return restoredSeconds
+    }
+
     private func markActiveProjectUsed() {
         markProjectUsed(activeProjectID)
     }
@@ -388,5 +339,82 @@ final class ClockModel: ObservableObject, @unchecked Sendable {
         guard let index = projects.firstIndex(where: { $0.id == projectID }) else { return }
         projects[index].lastUsedAt = Date()
         projectStore.saveProjects(projects)
+    }
+
+    private func beginRunningTimer() {
+        timer?.cancel()
+        timer = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.handleDayChangeIfNeeded()
+                self.elapsedSeconds += 1
+                self.projectElapsedSeconds[self.activeProjectID] = self.elapsedSeconds
+                let formatted = Self.formatElapsed(self.elapsedSeconds)
+                self.displayTime = formatted
+                self.onTimeChange?(formatted)
+                self.timeWriter.persist(formatted, projectID: self.activeProjectID)
+                self.persistLiveSessionState()
+            }
+    }
+
+    private func bootstrapLiveSessionState() {
+        let today = Self.todayString()
+        let loadedSession = projectStore.loadLiveSessionState()
+        let activeProjectFromStore = projectStore.loadActiveProjectID(projects: projects)
+        let sessionProjectID = loadedSession.flatMap { session -> String? in
+            guard session.trackingDate == today,
+                  projects.contains(where: { $0.id == session.activeProjectID }) else { return nil }
+            return session.activeProjectID
+        }
+        let restoredProjectID = sessionProjectID ?? (projects.contains(where: { $0.id == activeProjectFromStore }) ? activeProjectFromStore : ClockProject.defaultID)
+
+        activeProjectID = restoredProjectID
+        trackingDate = today
+
+        var restoredSeconds = 0
+        var restoredIsRunning = false
+        var restoreStateValue: RestoreState = .unavailable
+
+        if let session = loadedSession,
+           session.trackingDate == today,
+           projects.contains(where: { $0.id == session.activeProjectID }) {
+            restoredSeconds = session.elapsedSeconds
+            restoredIsRunning = session.isRunning
+            restoreStateValue = session.isRunning || session.elapsedSeconds > 0 ? .restored : .idle
+            if !restoredIsRunning, restoredSeconds == 0, let fileSeconds = loadRestorableElapsedSeconds(for: restoredProjectID) {
+                restoredSeconds = fileSeconds
+                restoreStateValue = .restored
+            }
+        } else if let fileSeconds = loadRestorableElapsedSeconds(for: restoredProjectID) {
+            restoredSeconds = fileSeconds
+            restoreStateValue = .restored
+        }
+
+        elapsedSeconds = restoredSeconds
+        projectElapsedSeconds[restoredProjectID] = restoredSeconds
+        isRunning = restoredIsRunning
+        displayTime = Self.formatElapsed(restoredSeconds)
+        restoreState = restoreStateValue
+        onTimeChange?(displayTime)
+        onRunningStateChange?(isRunning)
+
+        projectStore.saveActiveProjectID(restoredProjectID)
+        persistLiveSessionState()
+
+        if isRunning {
+            beginRunningTimer()
+        }
+    }
+
+    private func persistLiveSessionState() {
+        projectStore.saveLiveSessionState(
+            ClockSessionState(
+                activeProjectID: activeProjectID,
+                elapsedSeconds: elapsedSeconds,
+                trackingDate: trackingDate,
+                isRunning: isRunning
+            )
+        )
     }
 }

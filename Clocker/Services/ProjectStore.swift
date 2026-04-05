@@ -7,9 +7,18 @@ protocol ProjectRepository: AnyObject {
     func saveProjects(_ projects: [ClockProject])
     func loadActiveProjectID(projects: [ClockProject]) -> String
     func saveActiveProjectID(_ projectID: String)
+    func loadLiveSessionState() -> ClockSessionState?
+    func saveLiveSessionState(_ sessionState: ClockSessionState)
     func projectDirectoryURL(for projectID: String) -> URL
     func ensureProjectDirectoryExists(for projectID: String)
     func ensureStorageDirectoryExists()
+}
+
+struct ClockSessionState: Equatable {
+    var activeProjectID: String
+    var elapsedSeconds: Int
+    var trackingDate: String
+    var isRunning: Bool
 }
 
 @Model
@@ -49,6 +58,40 @@ final class StoredAppState {
     ) {
         self.key = key
         self.activeProjectID = activeProjectID
+    }
+}
+
+@Model
+final class StoredLiveSession {
+    static let defaultKey = "live-session"
+
+    @Attribute(.unique) var key: String
+    var activeProjectID: String
+    var elapsedSeconds: Int
+    var trackingDate: String
+    var isRunning: Bool
+
+    init(
+        key: String = StoredLiveSession.defaultKey,
+        activeProjectID: String = ClockProject.defaultID,
+        elapsedSeconds: Int = 0,
+        trackingDate: String = ClockModel.todayString(),
+        isRunning: Bool = false
+    ) {
+        self.key = key
+        self.activeProjectID = activeProjectID
+        self.elapsedSeconds = elapsedSeconds
+        self.trackingDate = trackingDate
+        self.isRunning = isRunning
+    }
+
+    func asClockSessionState() -> ClockSessionState {
+        ClockSessionState(
+            activeProjectID: activeProjectID,
+            elapsedSeconds: elapsedSeconds,
+            trackingDate: trackingDate,
+            isRunning: isRunning
+        )
     }
 }
 
@@ -121,6 +164,21 @@ final class ProjectStore: ProjectRepository {
         try? modelContext.save()
     }
 
+    func loadLiveSessionState() -> ClockSessionState? {
+        fetchLiveSession()?.asClockSessionState()
+    }
+
+    func saveLiveSessionState(_ sessionState: ClockSessionState) {
+        ensureStorageDirectoryExists()
+
+        let liveSession = fetchOrCreateLiveSession()
+        liveSession.activeProjectID = sessionState.activeProjectID
+        liveSession.elapsedSeconds = sessionState.elapsedSeconds
+        liveSession.trackingDate = sessionState.trackingDate
+        liveSession.isRunning = sessionState.isRunning
+        try? modelContext.save()
+    }
+
     func projectDirectoryURL(for projectID: String) -> URL {
         guard projectID != ClockProject.defaultID else {
             return legacyStorageURL
@@ -148,7 +206,7 @@ final class ProjectStore: ProjectRepository {
     }
 
     static func makeModelContainer(baseURL: URL) -> ModelContainer {
-        let schema = Schema([StoredProject.self, StoredAppState.self])
+        let schema = Schema([StoredProject.self, StoredAppState.self, StoredLiveSession.self])
         let storeURL = defaultModelStoreURL(baseURL: baseURL)
         try? FileManager.default.createDirectory(
             at: storeURL.deletingLastPathComponent(),
@@ -175,6 +233,10 @@ final class ProjectStore: ProjectRepository {
                 modelContext.insert(StoredAppState())
                 try? modelContext.save()
             }
+            if fetchLiveSession() == nil {
+                modelContext.insert(StoredLiveSession())
+                try? modelContext.save()
+            }
             cleanupLegacyProjectFiles()
             return
         }
@@ -194,6 +256,12 @@ final class ProjectStore: ProjectRepository {
         }
 
         modelContext.insert(StoredAppState(activeProjectID: loadLegacyActiveProjectID(validProjectIDs: Set(projectsToStore.map(\.id)))))
+        modelContext.insert(StoredLiveSession(
+            activeProjectID: loadLegacyActiveProjectID(validProjectIDs: Set(projectsToStore.map(\.id))),
+            elapsedSeconds: 0,
+            trackingDate: ClockModel.todayString(),
+            isRunning: false
+        ))
         try? modelContext.save()
         cleanupLegacyProjectFiles()
     }
@@ -215,6 +283,11 @@ final class ProjectStore: ProjectRepository {
         return try? modelContext.fetch(descriptor).first
     }
 
+    private func fetchLiveSession() -> StoredLiveSession? {
+        let descriptor = FetchDescriptor<StoredLiveSession>()
+        return try? modelContext.fetch(descriptor).first
+    }
+
     private func fetchOrCreateAppState() -> StoredAppState {
         if let appState = fetchAppState() {
             return appState
@@ -223,6 +296,16 @@ final class ProjectStore: ProjectRepository {
         let appState = StoredAppState()
         modelContext.insert(appState)
         return appState
+    }
+
+    private func fetchOrCreateLiveSession() -> StoredLiveSession {
+        if let liveSession = fetchLiveSession() {
+            return liveSession
+        }
+
+        let liveSession = StoredLiveSession()
+        modelContext.insert(liveSession)
+        return liveSession
     }
 
     private func loadLegacyProjects() -> [ClockProject] {

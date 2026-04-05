@@ -49,7 +49,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
                 .environmentObject(appUpdateService)
         )
 
-        clockModel.restoreTodayRecordIfAvailable()
         updateStatusItemTitle()
 
         if ProcessInfo.processInfo.environment["CLOCKER_SCREENSHOT_MODE"] == "1" {

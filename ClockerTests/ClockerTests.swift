@@ -128,6 +128,52 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: fileURL, encoding: .utf8), "00:05\n---\n")
     }
 
+    func testClockModelRestoresLiveSessionStateFromSwiftData() throws {
+        let storeURL = tempDirectory.appendingPathComponent("SwiftData.store")
+        let store = try makeProjectStore(
+            legacyStorageURL: tempDirectory,
+            modelStoreURL: storeURL
+        )
+        let projects = [
+            ClockProject.defaultProject,
+            ClockProject(id: "project-123", name: "Design")
+        ]
+        store.saveProjects(projects)
+        store.saveActiveProjectID("project-123")
+        store.saveLiveSessionState(
+            ClockSessionState(
+                activeProjectID: "project-123",
+                elapsedSeconds: 125,
+                trackingDate: ClockModel.todayString(),
+                isRunning: true
+            )
+        )
+
+        let model = ClockModel(
+            projectRepository: store,
+            timeWriter: TimeWriter(storageURL: tempDirectory)
+        )
+
+        XCTAssertEqual(model.activeProjectID, "project-123")
+        XCTAssertEqual(model.displayTime, "02:05")
+        XCTAssertTrue(model.isRunning)
+        XCTAssertEqual(model.restoreState, .restored)
+
+        model.stop()
+        XCTAssertFalse(model.isRunning)
+
+        let persistedSession = try XCTUnwrap(store.loadLiveSessionState())
+        XCTAssertEqual(persistedSession.activeProjectID, "project-123")
+        XCTAssertEqual(persistedSession.elapsedSeconds, 125)
+        XCTAssertEqual(persistedSession.trackingDate, ClockModel.todayString())
+        XCTAssertFalse(persistedSession.isRunning)
+
+        model.reset()
+        let resetSession = try XCTUnwrap(store.loadLiveSessionState())
+        XCTAssertEqual(resetSession.elapsedSeconds, 0)
+        XCTAssertFalse(resetSession.isRunning)
+    }
+
     func testHistoryDataBuilderBuildsFileEntriesInFilesMode() throws {
         let fileURL = try createHistoryFile(name: "2026-01-01.txt", contents: "00:00:59\n")
 
@@ -372,7 +418,7 @@ final class ClockerTests: XCTestCase {
     }
 
     private func makeModelContainer(storeURL: URL? = nil) throws -> ModelContainer {
-        let schema = Schema([StoredProject.self, StoredAppState.self])
+        let schema = Schema([StoredProject.self, StoredAppState.self, StoredLiveSession.self])
         if let storeURL {
             let configuration = ModelConfiguration(url: storeURL)
             return try ModelContainer(for: schema, configurations: [configuration])
