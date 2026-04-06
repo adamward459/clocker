@@ -1,7 +1,6 @@
 import SwiftUI
 
 enum HistoryViewMode: String, CaseIterable, Identifiable {
-    case files
     case week
     case month
 
@@ -9,8 +8,6 @@ enum HistoryViewMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .files:
-            return "Files"
         case .week:
             return "Week"
         case .month:
@@ -56,9 +53,10 @@ struct HistorySection: Identifiable {
 
 struct HistoryPage: View {
     static let viewModeStorageKey = "history.viewMode"
+    static let preferredWidth: CGFloat = 400
 
     @EnvironmentObject var clockService: ClockService
-    @AppStorage(Self.viewModeStorageKey) private var viewModeRawValue = HistoryViewMode.files.rawValue
+    @AppStorage(Self.viewModeStorageKey) private var viewModeRawValue = HistoryViewMode.week.rawValue
 
     var navigateBack: () -> Void
     var isVisible: Bool = false
@@ -67,7 +65,7 @@ struct HistoryPage: View {
     @State private var expandedEntryIDs: Set<String> = []
 
     private var viewMode: HistoryViewMode {
-        get { HistoryViewMode(rawValue: viewModeRawValue) ?? .files }
+        get { HistoryViewMode(rawValue: viewModeRawValue) ?? .week }
         set { viewModeRawValue = newValue.rawValue }
     }
 
@@ -145,6 +143,7 @@ struct HistoryPage: View {
         .onChange(of: clockService.displayTime) { _, _ in
             if isVisible { loadEntries() }
         }
+        .frame(width: Self.preferredWidth)
     }
 
     private var historyList: some View {
@@ -350,12 +349,6 @@ enum HistoryDataBuilder {
         calendar: Calendar = .autoupdatingCurrent
     ) -> Result {
         switch mode {
-        case .files:
-            let entries = sessions
-                .sorted { $0.createdAt > $1.createdAt }
-                .compactMap(makeSessionEntry(_:))
-            let totalSeconds = sessions.reduce(0) { $0 + $1.currentElapsedSeconds }
-            return Result(entries: entries, summaryText: formatSummaryDuration(totalSeconds))
         case .week, .month:
             let buckets = groupedBuckets(for: sessions, mode: mode, calendar: calendar)
             let totalSeconds = buckets.reduce(0) { $0 + $1.totalSeconds }
@@ -453,8 +446,6 @@ enum HistoryDataBuilder {
 
     private static func bucketStartDate(for date: Date, mode: HistoryViewMode, calendar: Calendar) -> Date {
         switch mode {
-        case .files:
-            return date
         case .week:
             return calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? date
         case .month:
@@ -467,10 +458,6 @@ enum HistoryDataBuilder {
         formatter.calendar = Calendar.autoupdatingCurrent
         formatter.timeZone = .autoupdatingCurrent
         switch mode {
-        case .files:
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .none
-            return formatter.string(from: date)
         case .week:
             formatter.dateStyle = .medium
             formatter.timeStyle = .none
