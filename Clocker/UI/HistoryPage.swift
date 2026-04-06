@@ -23,6 +23,7 @@ struct HistoryEntry: Identifiable {
     let accessoryText: String?
     let trailingText: String?
     let icon: String
+    let sessions: [Session]
     var children: [HistoryEntry]
 
     init(
@@ -32,6 +33,7 @@ struct HistoryEntry: Identifiable {
         accessoryText: String? = nil,
         trailingText: String? = nil,
         icon: String,
+        sessions: [Session] = [],
         children: [HistoryEntry] = []
     ) {
         self.id = id
@@ -40,8 +42,16 @@ struct HistoryEntry: Identifiable {
         self.accessoryText = accessoryText
         self.trailingText = trailingText
         self.icon = icon
+        self.sessions = sessions
         self.children = children
     }
+}
+
+private enum HistoryEntryStatusDisplay {
+    case done
+    case undone
+    case running
+    case mixed
 }
 
 struct HistorySection: Identifiable {
@@ -207,9 +217,7 @@ struct HistoryPage: View {
 
     @ViewBuilder
     private func historyEntryRow(_ entry: HistoryEntry, depth: Int) -> some View {
-        let rowFill: Color = entry.children.isEmpty
-            ? ClockerTheme.Colors.hoverFill.opacity(0.12)
-            : ClockerTheme.Colors.hoverFill.opacity(0.18)
+        let rowFill = statusFill(for: entry)
 
         HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
             Image(systemName: entry.icon)
@@ -261,6 +269,16 @@ struct HistoryPage: View {
                         .font(ClockerTheme.Fonts.navTitle)
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
+                }
+
+                if !entry.sessions.isEmpty {
+                    Button {
+                        toggleStatus(for: entry)
+                    } label: {
+                        statusBadge(for: entry)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(statusAccessibilityLabel(for: entry))
                 }
             }
         }
@@ -316,6 +334,78 @@ struct HistoryPage: View {
             .fill(ClockerTheme.Colors.hoverFill.opacity(0.25))
     }
 
+    private func statusFill(for entry: HistoryEntry) -> Color {
+        switch aggregateStatus(for: entry.sessions) {
+        case .done:
+            return Color.green.opacity(0.07)
+        case .undone:
+            return Color.red.opacity(0.06)
+        case .running:
+            return Color.blue.opacity(0.06)
+        case .mixed:
+            return ClockerTheme.Colors.hoverFill.opacity(0.18)
+        }
+    }
+
+    private func statusBadge(for entry: HistoryEntry) -> some View {
+        let status = aggregateStatus(for: entry.sessions)
+        let symbol: String
+        let color: Color
+
+        switch status {
+        case .done:
+            symbol = "checkmark.circle.fill"
+            color = .green
+        case .undone:
+            symbol = "xmark.circle.fill"
+            color = .red
+        case .running:
+            symbol = "timer.circle.fill"
+            color = .blue
+        case .mixed:
+            symbol = "circle.dashed"
+            color = .secondary
+        }
+
+        return Image(systemName: symbol)
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(color)
+            .padding(4)
+            .background(
+                Circle()
+                    .fill(color.opacity(0.12))
+            )
+    }
+
+    private func statusAccessibilityLabel(for entry: HistoryEntry) -> String {
+        switch aggregateStatus(for: entry.sessions) {
+        case .done:
+            return entry.children.isEmpty ? "Mark session as undone" : "Mark session group as undone"
+        case .undone, .running, .mixed:
+            return entry.children.isEmpty ? "Mark session as done" : "Mark session group as done"
+        }
+    }
+
+    private func aggregateStatus(for sessions: [Session]) -> HistoryEntryStatusDisplay {
+        guard let firstStatus = sessions.first?.status else { return .mixed }
+        if sessions.allSatisfy({ $0.status == firstStatus }) {
+            switch firstStatus {
+            case .done:
+                return .done
+            case .undone:
+                return .undone
+            case .running:
+                return .running
+            }
+        }
+        return .mixed
+    }
+
+    private func toggleStatus(for entry: HistoryEntry) {
+        let nextStatus: Session.Status = aggregateStatus(for: entry.sessions) == .done ? .undone : .done
+        clockService.updateHistorySessionsStatus(entry.sessions, to: nextStatus)
+    }
+
     private func isExpanded(_ entry: HistoryEntry) -> Bool {
         expandedEntryIDs.contains(entry.id)
     }
@@ -359,6 +449,7 @@ enum HistoryDataBuilder {
                     secondaryText: bucket.sessionCount == 1 ? "1 session" : "\(bucket.sessionCount) sessions",
                     trailingText: formatSummaryDuration(bucket.totalSeconds),
                     icon: "clock.fill",
+                    sessions: bucket.sessions.sorted { $0.createdAt > $1.createdAt },
                     children: bucket.sessions
                         .sorted { $0.createdAt > $1.createdAt }
                         .compactMap(makeSessionEntry(_:))
@@ -426,7 +517,8 @@ enum HistoryDataBuilder {
             secondaryText: session.dateKey,
             accessoryText: statusText,
             trailingText: formatSummaryDuration(session.currentElapsedSeconds),
-            icon: "clock.fill"
+            icon: "clock.fill",
+            sessions: [session]
         )
     }
 

@@ -103,8 +103,15 @@ final class ClockService: ObservableObject, @unchecked Sendable {
         handleDayChangeIfNeeded()
 
         let today = Self.todayString()
-        if state.activeSession == nil || state.activeSession?.projectId != state.activeProjectID || state.activeSession?.dateKey != today {
+        if state.activeSession == nil
+            || state.activeSession?.projectId != state.activeProjectID
+            || state.activeSession?.dateKey != today
+            || state.activeSession?.status == .undone
+        {
             state.activeSession = projectSessionService.loadLatestSession(for: state.activeProjectID, dateKey: today)
+            if state.activeSession?.status == .undone {
+                state.activeSession = nil
+            }
         }
 
         if state.activeSession == nil {
@@ -225,6 +232,47 @@ final class ClockService: ObservableObject, @unchecked Sendable {
         projectSessionService.loadSessions(for: projectID)
     }
 
+    func updateHistorySessionsStatus(_ sessions: [Session], to status: Session.Status) {
+        let uniqueSessions = Array(Dictionary(grouping: sessions, by: \.id).values.compactMap { $0.first })
+        guard !uniqueSessions.isEmpty else { return }
+
+        let activeSessionID = state.activeSession?.id
+        let needsStop = isRunning && uniqueSessions.contains(where: { $0.id == activeSessionID })
+        if needsStop {
+            _ = stop()
+        }
+
+        for session in uniqueSessions {
+            switch status {
+            case .done:
+                session.markDone()
+            case .undone:
+                session.markUndone()
+            case .running:
+                continue
+            }
+
+            projectSessionService.saveSession(session)
+
+            if session.id == activeSessionID {
+                switch status {
+                case .done:
+                    appStateService.setCurrentSession(session)
+                case .undone:
+                    state.activeSession = nil
+                    appStateService.clearCurrentSession()
+                    state.restoreState = .idle
+                    state.displayTime = "00:00"
+                    onTimeChange?(state.displayTime)
+                case .running:
+                    break
+                }
+            }
+        }
+
+        bumpDataRevision()
+    }
+
     func renameProject(_ projectID: UUID, to newName: String) {
         let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return }
@@ -302,9 +350,17 @@ final class ClockService: ObservableObject, @unchecked Sendable {
     private func refreshStateForSelectedProject() {
         let today = Self.todayString()
         state.trackingDate = today
-        let session = projectSessionService.loadLatestSession(for: state.activeProjectID, dateKey: today)
+        let session = latestRestorableSession(for: state.activeProjectID, dateKey: today)
         let selectedProject = state.projects.first(where: { $0.id == state.activeProjectID }) ?? state.projects.first ?? Project(name: Project.defaultName)
         apply(makeRestorationResult(selectedProject: selectedProject, session: session))
+    }
+
+    private func latestRestorableSession(for projectID: UUID, dateKey: String) -> Session? {
+        guard let session = projectSessionService.loadLatestSession(for: projectID, dateKey: dateKey) else {
+            return nil
+        }
+
+        return session.status == .undone ? nil : session
     }
 
     private func handleDayChangeIfNeeded() {
@@ -355,14 +411,15 @@ final class ClockService: ObservableObject, @unchecked Sendable {
     }
 
     private func makeRestorationResult(selectedProject: Project, session: Session?) -> ClockRestorationResult {
-        let elapsedSeconds = session?.currentElapsedSeconds ?? 0
-        let isRunning = session?.isRunning ?? false
-        let restoreState: RestoreState = session == nil ? .unavailable : ((isRunning || elapsedSeconds > 0) ? .restored : .idle)
+        let restorableSession = session?.status == .undone ? nil : session
+        let elapsedSeconds = restorableSession?.currentElapsedSeconds ?? 0
+        let isRunning = restorableSession?.isRunning ?? false
+        let restoreState: RestoreState = restorableSession == nil ? .unavailable : ((isRunning || elapsedSeconds > 0) ? .restored : .idle)
 
         return ClockRestorationResult(
             projects: state.projects,
             selectedProject: selectedProject,
-            session: session,
+            session: restorableSession,
             isRunning: isRunning,
             displayTime: Self.formatElapsed(elapsedSeconds),
             restoreState: restoreState,

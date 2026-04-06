@@ -62,10 +62,15 @@ final class ClockStateRestorer {
     private func restoredSession(for projectID: UUID, today: String, appState: AppState?) -> Session? {
         if let currentSession = appState?.currentSession,
            currentSession.projectId == projectID,
-           currentSession.dateKey == today {
+           currentSession.dateKey == today,
+           currentSession.status != .undone {
             return currentSession
         }
 
-        return projectSessionService.loadLatestSession(for: projectID, dateKey: today)
+        guard let latestSession = projectSessionService.loadLatestSession(for: projectID, dateKey: today) else {
+            return nil
+        }
+
+        return latestSession.status == .undone ? nil : latestSession
     }
 }

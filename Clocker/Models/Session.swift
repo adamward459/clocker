@@ -67,6 +67,11 @@ final class Session {
         status = .done
     }
 
+    func markDone() {
+        startedAt = nil
+        status = .done
+    }
+
     func markUndone() {
         startedAt = nil
         status = .undone
