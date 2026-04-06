@@ -26,15 +26,14 @@ final class SwiftDataProjectSessionRepository: ProjectSessionRepository {
     }
 
     func loadProjects() -> [Project] {
-        let descriptor = FetchDescriptor<Project>()
-        let projects = (try? modelContext.fetch(descriptor)) ?? []
-        return projects.sorted { lhs, rhs in
-            if lhs.createdAt != rhs.createdAt {
-                return lhs.createdAt < rhs.createdAt
-            }
-
-            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
-        }
+        let descriptor = FetchDescriptor<Project>(
+            sortBy: [
+                SortDescriptor(\Project.lastUsedAt, order: .reverse),
+                SortDescriptor(\Project.createdAt, order: .forward),
+                SortDescriptor(\Project.name, order: .forward)
+            ]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     func loadProject(id: UUID) -> Project? {
@@ -45,7 +44,7 @@ final class SwiftDataProjectSessionRepository: ProjectSessionRepository {
         if let existing = loadProject(id: project.id) {
             existing.name = project.name
             existing.createdAt = project.createdAt
-            existing.sessions = project.sessions
+            existing.lastUsedAt = project.lastUsedAt
         } else {
             modelContext.insert(project)
         }
@@ -64,19 +63,24 @@ final class SwiftDataProjectSessionRepository: ProjectSessionRepository {
     }
 
     func loadSessions() -> [Session] {
-        let descriptor = FetchDescriptor<Session>()
-        let sessions = (try? modelContext.fetch(descriptor)) ?? []
-        return sessions.sorted { lhs, rhs in
-            if lhs.createdAt != rhs.createdAt {
-                return lhs.createdAt < rhs.createdAt
-            }
-
-            return lhs.startAt < rhs.startAt
-        }
+        let descriptor = FetchDescriptor<Session>(
+            sortBy: [
+                SortDescriptor(\Session.dateKey, order: .forward),
+                SortDescriptor(\Session.createdAt, order: .forward)
+            ]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     func loadSessions(for projectId: UUID) -> [Session] {
-        loadSessions().filter { $0.projectId == projectId }
+        let descriptor = FetchDescriptor<Session>(
+            predicate: #Predicate { $0.projectId == projectId },
+            sortBy: [
+                SortDescriptor(\Session.dateKey, order: .forward),
+                SortDescriptor(\Session.createdAt, order: .forward)
+            ]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     func loadSession(id: UUID) -> Session? {
@@ -86,17 +90,15 @@ final class SwiftDataProjectSessionRepository: ProjectSessionRepository {
     func saveSession(_ session: Session) {
         if let existing = loadSession(id: session.id) {
             existing.projectId = session.projectId
-            existing.startAt = session.startAt
-            existing.endAt = session.endAt
-            existing.createdAt = session.createdAt
+            existing.project = session.project ?? loadProject(id: session.projectId)
+            existing.dateKey = session.dateKey
+            existing.elapsedSeconds = session.elapsedSeconds
+            existing.startedAt = session.startedAt
             existing.status = session.status
+            existing.createdAt = session.createdAt
         } else {
+            session.project = session.project ?? loadProject(id: session.projectId)
             modelContext.insert(session)
-        }
-
-        if let project = loadProject(id: session.projectId),
-           !project.sessions.contains(where: { $0.id == session.id }) {
-            project.sessions.append(session)
         }
 
         try? modelContext.save()

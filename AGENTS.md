@@ -6,8 +6,10 @@ This repository contains **Clocker**, a native macOS menu bar app written in Swi
 
 - App entry point: `Clocker/ClockerApp.swift`
 - App delegate / menu bar setup: `Clocker/Support/AppDelegate.swift`
-- Core timer state and persistence: `Clocker/Models/ClockModel.swift`
-- File writer: `Clocker/Services/TimeWriter.swift`
+- Core timer store: `Clocker/Services/ClockService.swift`
+- Timer driver: `Clocker/Services/ClockTimerDriver.swift`
+- Initial state restore: `Clocker/Services/ClockStateRestorer.swift`
+- SwiftData repositories and services: `Clocker/Repository/*`, `Clocker/Services/*`
 - Login item integration: `Clocker/Services/LoginItemService.swift`
 - Menu bar UI: `Clocker/UI/*`
 
@@ -22,9 +24,17 @@ This repository contains **Clocker**, a native macOS menu bar app written in Swi
 ## App Behavior Notes
 
 - The app runs as a menu bar app with a popover UI.
-- It tracks elapsed time and persists daily records under `~/Documents/Clocker`.
-- It supports restoring today’s record, opening the storage folder, and toggling launch at login.
-- History view reads files from the storage folder and shows metadata for each entry.
+- It tracks elapsed time with SwiftData-backed projects and sessions.
+- It restores the current project/session state from SwiftData on launch and keeps persistence off the file system for the main app flow.
+- It supports restoring today’s record and toggling launch at login.
+- History view reads SwiftData sessions and groups them by project and date.
+
+## Architecture Notes
+
+- Prefer SOLID boundaries: keep views thin, move persistence into repositories/services, and keep domain rules in store methods rather than in UI code.
+- Treat `ClockService` as the store that owns published state, `ClockStateRestorer` as the pure snapshot builder, and `ClockTimerDriver` as the time/event driver.
+- Treat `AppState` as the persisted pointer record for the selected project and current session.
+- Avoid adding new file-based persistence for core timer/history features unless the task explicitly calls for legacy compatibility.
 
 ## Verification
 

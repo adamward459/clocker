@@ -42,7 +42,7 @@ final class ClockerTests: XCTestCase {
         let writer = TimeWriter(storageURL: tempDirectory)
         writer.persist("00:15", projectID: "project-123")
 
-        let fileURL = ClockModel.currentDayFileURL(storageURL: tempDirectory, projectID: "project-123")
+        let fileURL = ClockService.currentDayFileURL(storageURL: tempDirectory, projectID: "project-123")
         writer.waitUntilIdle()
         XCTAssertTrue(FileManager.default.fileExists(atPath: fileURL.path))
         XCTAssertEqual(try String(contentsOf: fileURL, encoding: .utf8), "00:15\n")
@@ -69,20 +69,20 @@ final class ClockerTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: statusURL.path))
     }
 
-    func testClockModelParsesRestoredTimeFromLastNonEmptyLine() {
-        XCTAssertEqual(ClockModel.parseElapsedSeconds(from: "00:01\n00:42\n"), 42)
-        XCTAssertEqual(ClockModel.parseElapsedSeconds(from: "\n 01:02:03 \n\n"), 3723)
-        XCTAssertNil(ClockModel.parseElapsedSeconds(from: ""))
-        XCTAssertNil(ClockModel.parseElapsedSeconds(from: "bad\nvalue"))
+    func testClockServiceParsesRestoredTimeFromLastNonEmptyLine() {
+        XCTAssertEqual(ClockService.parseElapsedSeconds(from: "00:01\n00:42\n"), 42)
+        XCTAssertEqual(ClockService.parseElapsedSeconds(from: "\n 01:02:03 \n\n"), 3723)
+        XCTAssertNil(ClockService.parseElapsedSeconds(from: ""))
+        XCTAssertNil(ClockService.parseElapsedSeconds(from: "bad\nvalue"))
     }
 
-    func testClockModelFormatsElapsedTime() {
-        XCTAssertEqual(ClockModel.formatElapsed(59), "00:59")
-        XCTAssertEqual(ClockModel.formatElapsed(61), "01:01")
-        XCTAssertEqual(ClockModel.formatElapsed(3661), "1:01:01")
+    func testClockServiceFormatsElapsedTime() {
+        XCTAssertEqual(ClockService.formatElapsed(59), "00:59")
+        XCTAssertEqual(ClockService.formatElapsed(61), "01:01")
+        XCTAssertEqual(ClockService.formatElapsed(3661), "1:01:01")
     }
 
-    func testClockModelParsesSessionDurationsAndTrailingSeparator() {
+    func testClockServiceParsesSessionDurationsAndTrailingSeparator() {
         let contents = """
         00:01
         00:02
@@ -91,9 +91,9 @@ final class ClockerTests: XCTestCase {
         00:04
         """
 
-        XCTAssertEqual(ClockModel.parseSessionDurations(from: contents), [2, 4])
-        XCTAssertEqual(ClockModel.parseElapsedSeconds(from: contents), 4)
-        XCTAssertEqual(ClockModel.parseElapsedSeconds(from: "00:01\n---\n"), 0)
+        XCTAssertEqual(ClockService.parseSessionDurations(from: contents), [2, 4])
+        XCTAssertEqual(ClockService.parseElapsedSeconds(from: contents), 4)
+        XCTAssertEqual(ClockService.parseElapsedSeconds(from: "00:01\n---\n"), 0)
     }
 
     func testTimeWriterBeginsNewSessionWithSeparator() throws {
@@ -110,118 +110,90 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: fileURL, encoding: .utf8), "00:01\n---\n00:02\n")
     }
 
-    func testClockModelStartNewSessionAppendsSeparatorAndResetsDisplay() throws {
-        let writer = TimeWriter(storageURL: tempDirectory)
-        writer.persist("00:05")
-        writer.waitUntilIdle()
+    func testClockServiceCreatesAndSwitchesProjects() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let inboxProjectID = try XCTUnwrap(clockService.projects.first?.id)
 
-        let store = try makeProjectStore(legacyStorageURL: tempDirectory)
-        let model = ClockModel(projectRepository: store, timeWriter: writer)
+        XCTAssertEqual(clockService.activeProjectID, inboxProjectID)
+        XCTAssertEqual(clockService.activeProjectName, Project.defaultName)
 
-        model.startNewSession()
-        model.stop()
-        writer.waitUntilIdle()
+        let created = try XCTUnwrap(clockService.createProject(named: "Ops"))
+        XCTAssertEqual(created.name, "Ops")
+        XCTAssertEqual(clockService.activeProjectName, "Ops")
+        XCTAssertEqual(clockService.activeProjectID, created.id)
 
-        let fileURL = todayFileURL()
-        XCTAssertEqual(model.displayTime, "00:00")
-        XCTAssertFalse(model.isRunning)
-        XCTAssertEqual(try String(contentsOf: fileURL, encoding: .utf8), "00:05\n---\n")
-    }
+        _ = clockService.switchToProject(inboxProjectID)
+        XCTAssertEqual(clockService.activeProjectName, Project.defaultName)
+        XCTAssertEqual(clockService.activeProjectID, inboxProjectID)
 
-    func testClockModelRestoresLiveSessionStateFromSwiftData() throws {
-        let storeURL = tempDirectory.appendingPathComponent("SwiftData.store")
-        let store = try makeProjectStore(
-            legacyStorageURL: tempDirectory,
-            modelStoreURL: storeURL
-        )
-        let projects = [
-            ClockProject.defaultProject,
-            ClockProject(id: "project-123", name: "Design")
-        ]
-        store.saveProjects(projects)
-        store.saveActiveProjectID("project-123")
-        store.saveLiveSessionState(
-            ClockSessionState(
-                activeProjectID: "project-123",
-                elapsedSeconds: 125,
-                trackingDate: ClockModel.todayString(),
-                isRunning: true
-            )
-        )
-
-        let model = ClockModel(
-            projectRepository: store,
-            timeWriter: TimeWriter(storageURL: tempDirectory)
-        )
-
-        XCTAssertEqual(model.activeProjectID, "project-123")
-        XCTAssertEqual(model.displayTime, "02:05")
-        XCTAssertTrue(model.isRunning)
-        XCTAssertEqual(model.restoreState, .restored)
-
-        model.stop()
-        XCTAssertFalse(model.isRunning)
-
-        let persistedSession = try XCTUnwrap(store.loadLiveSessionState())
-        XCTAssertEqual(persistedSession.activeProjectID, "project-123")
-        XCTAssertEqual(persistedSession.elapsedSeconds, 125)
-        XCTAssertEqual(persistedSession.trackingDate, ClockModel.todayString())
-        XCTAssertFalse(persistedSession.isRunning)
-
-        model.reset()
-        let resetSession = try XCTUnwrap(store.loadLiveSessionState())
-        XCTAssertEqual(resetSession.elapsedSeconds, 0)
-        XCTAssertFalse(resetSession.isRunning)
+        let persistedAppState = try XCTUnwrap(appStateService.loadAppState())
+        XCTAssertEqual(persistedAppState.selectedProject?.id, clockService.activeProjectID)
+        XCTAssertNotNil(projectSessionService.loadProjects().first(where: { $0.id == created.id }))
     }
 
     func testHistoryDataBuilderBuildsFileEntriesInFilesMode() throws {
-        let fileURL = try createHistoryFile(name: "2026-01-01.txt", contents: "00:00:59\n")
+        let sessions = [
+            makeHistorySession(
+                dateKey: "2026-01-01",
+                createdAt: Date(timeIntervalSince1970: 60),
+                elapsedSeconds: 59,
+                status: .done
+            )
+        ]
 
         let result = HistoryDataBuilder.makeResult(
-            for: [fileURL],
-            mode: .files,
-            isDone: { _ in true }
+            for: sessions,
+            mode: .files
         )
 
-        XCTAssertNil(result.summaryText)
+        XCTAssertEqual(result.summaryText, "00:00:59")
         XCTAssertEqual(result.entries.count, 1)
-        XCTAssertEqual(result.entries[0].title, "2026-01-01.txt")
-        XCTAssertEqual(result.entries[0].secondaryText, "1 session")
+        XCTAssertEqual(result.entries[0].secondaryText, "2026-01-01")
         XCTAssertEqual(result.entries[0].trailingText, "00:00:59")
-        XCTAssertNotNil(result.entries[0].accessoryText)
-        XCTAssertTrue(result.entries[0].allowsStatusToggle)
-        XCTAssertTrue(result.entries[0].isDone)
-        XCTAssertEqual(result.entries[0].children.count, 1)
-        XCTAssertEqual(result.entries[0].children[0].title, "Session 1")
-        XCTAssertEqual(result.entries[0].children[0].trailingText, "00:00:59")
+        XCTAssertEqual(result.entries[0].accessoryText, "Done")
+        XCTAssertEqual(result.entries[0].children.count, 0)
     }
 
     func testHistoryDataBuilderBuildsSessionChildrenInFilesMode() throws {
-        let fileURL = try createHistoryFile(
-            name: "2026-01-02.txt",
-            contents: "00:01\n00:02\n---\n00:01\n00:02\n00:03\n"
-        )
+        let sessions = [
+            makeHistorySession(
+                dateKey: "2026-01-02",
+                createdAt: Date(timeIntervalSince1970: 120),
+                elapsedSeconds: 2,
+                status: .done
+            ),
+            makeHistorySession(
+                dateKey: "2026-01-02",
+                createdAt: Date(timeIntervalSince1970: 180),
+                elapsedSeconds: 3,
+                status: .done
+            )
+        ]
 
         let result = HistoryDataBuilder.makeResult(
-            for: [fileURL],
-            mode: .files,
-            isDone: { _ in false }
+            for: sessions,
+            mode: .files
         )
 
-        XCTAssertEqual(result.entries.count, 1)
-        let day = result.entries[0]
-        XCTAssertEqual(day.secondaryText, "2 sessions")
-        XCTAssertEqual(day.trailingText, "00:00:05")
-        XCTAssertEqual(day.children.count, 2)
-        XCTAssertEqual(day.children[0].title, "Session 2")
-        XCTAssertEqual(day.children[0].trailingText, "00:00:03")
-        XCTAssertEqual(day.children[1].title, "Session 1")
-        XCTAssertEqual(day.children[1].trailingText, "00:00:02")
+        XCTAssertEqual(result.entries.count, 2)
+        XCTAssertEqual(result.summaryText, "00:00:05")
+        XCTAssertEqual(result.entries[0].trailingText, "00:00:03")
+        XCTAssertEqual(result.entries[1].trailingText, "00:00:02")
     }
 
     func testHistoryDataBuilderGroupsWeeksAcrossBoundaries() throws {
-        let fileOne = try createHistoryFile(name: "2024-01-01.txt", contents: "00:01:00\n")
-        let fileTwo = try createHistoryFile(name: "2024-01-08.txt", contents: "00:02:00\n")
+        let fileOne = makeHistorySession(
+            dateKey: "2024-01-01",
+            createdAt: Date(timeIntervalSince1970: 60),
+            elapsedSeconds: 60,
+            status: .done
+        )
+        let fileTwo = makeHistorySession(
+            dateKey: "2024-01-08",
+            createdAt: Date(timeIntervalSince1970: 120),
+            elapsedSeconds: 120,
+            status: .done
+        )
 
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -240,8 +212,18 @@ final class ClockerTests: XCTestCase {
     }
 
     func testHistoryDataBuilderGroupsMonthsAcrossBoundaries() throws {
-        let fileOne = try createHistoryFile(name: "2024-01-31.txt", contents: "00:01:30\n")
-        let fileTwo = try createHistoryFile(name: "2024-02-01.txt", contents: "00:02:30\n")
+        let fileOne = makeHistorySession(
+            dateKey: "2024-01-31",
+            createdAt: Date(timeIntervalSince1970: 60),
+            elapsedSeconds: 90,
+            status: .done
+        )
+        let fileTwo = makeHistorySession(
+            dateKey: "2024-02-01",
+            createdAt: Date(timeIntervalSince1970: 120),
+            elapsedSeconds: 150,
+            status: .done
+        )
 
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -280,12 +262,12 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(HistoryViewMode(rawValue: defaults.string(forKey: key) ?? ""), .month)
     }
 
-    func testClockModelBuildsTodayFileURLInsideStorageDirectory() {
-        let url = ClockModel.currentDayFileURL(storageURL: tempDirectory, date: Date(timeIntervalSince1970: 0))
+    func testClockServiceBuildsTodayFileURLInsideStorageDirectory() {
+        let url = ClockService.currentDayFileURL(storageURL: tempDirectory, date: Date(timeIntervalSince1970: 0))
         XCTAssertEqual(url.deletingLastPathComponent(), tempDirectory)
         XCTAssertEqual(url.lastPathComponent, "1970-01-01.txt")
 
-        let projectURL = ClockModel.currentDayFileURL(
+        let projectURL = ClockService.currentDayFileURL(
             storageURL: tempDirectory,
             projectID: "project-123",
             date: Date(timeIntervalSince1970: 0)
@@ -294,9 +276,9 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(projectURL.lastPathComponent, "1970-01-01.txt")
     }
 
-    func testClockModelUsesBuildSpecificStorageFolder() {
-        XCTAssertEqual(ClockModel.storageFolderName(bundleIdentifier: "com.example.clocker.dev"), "Clocker-Dev")
-        XCTAssertEqual(ClockModel.storageFolderName(bundleIdentifier: "com.example.clocker"), "Clocker")
+    func testClockServiceUsesBuildSpecificStorageFolder() {
+        XCTAssertEqual(ClockService.storageFolderName(bundleIdentifier: "com.example.clocker.dev"), "Clocker-Dev")
+        XCTAssertEqual(ClockService.storageFolderName(bundleIdentifier: "com.example.clocker"), "Clocker")
     }
 
     func testProjectStorePersistsProjectsAndActiveSelection() {
@@ -355,22 +337,81 @@ final class ClockerTests: XCTestCase {
         )
     }
 
-    func testClockModelCreatesAndSwitchesProjects() {
-        let store = try! makeProjectStore(legacyStorageURL: tempDirectory)
-        let writer = TimeWriter(storageURL: tempDirectory)
-        let model = ClockModel(projectRepository: store, timeWriter: writer)
+    func testClockStateRestorerCreatesDefaultProjectWhenStoreIsEmpty() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
 
-        XCTAssertEqual(model.activeProjectID, ClockProject.defaultID)
-        XCTAssertEqual(model.activeProjectName, ClockProject.defaultProjectName)
+        let result = clockService.restoreTodayRecordIfAvailable()
 
-        let created = model.createProject(named: "Ops")
-        XCTAssertEqual(created?.name, "Ops")
-        XCTAssertEqual(model.activeProjectName, "Ops")
-        XCTAssertEqual(model.activeProjectID, created?.id)
+        XCTAssertEqual(result.projects.count, 1)
+        XCTAssertEqual(result.selectedProject.name, Project.defaultName)
+        XCTAssertNil(result.session)
+        XCTAssertEqual(result.restoreState, .unavailable)
+        XCTAssertEqual(clockService.projects.count, 1)
+        XCTAssertEqual(clockService.activeProjectName, Project.defaultName)
 
-        model.switchToProject(ClockProject.defaultID)
-        XCTAssertEqual(model.activeProjectName, ClockProject.defaultProjectName)
-        XCTAssertEqual(model.activeProjectID, ClockProject.defaultID)
+        let persistedAppState = try XCTUnwrap(appStateService.loadAppState())
+        XCTAssertEqual(persistedAppState.selectedProject?.id, result.selectedProject.id)
+        XCTAssertNil(persistedAppState.currentSession)
+        XCTAssertEqual(projectSessionService.loadProjects().count, 1)
+    }
+
+    func testClockStoreRestoresSelectedProjectAndLiveSessionFromSwiftData() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let project = try XCTUnwrap(projectSessionService.createProject(named: "Design"))
+        let session = try XCTUnwrap(
+            projectSessionService.createSession(
+                for: project.id,
+                dateKey: ClockService.todayString(),
+                elapsedSeconds: 125,
+                startedAt: .now.addingTimeInterval(-125),
+                status: .running
+            )
+        )
+
+        appStateService.setSelectedProject(project)
+        appStateService.setCurrentSession(session)
+
+        let result = clockService.restoreTodayRecordIfAvailable()
+
+        XCTAssertEqual(result.selectedProject.id, project.id)
+        XCTAssertEqual(result.session?.id, session.id)
+        XCTAssertEqual(result.isRunning, true)
+        XCTAssertEqual(result.displayTime, "02:05")
+        XCTAssertEqual(result.restoreState, .restored)
+        XCTAssertEqual(clockService.activeProjectID, project.id)
+        XCTAssertEqual(clockService.displayTime, "02:05")
+        XCTAssertTrue(clockService.isRunning)
+
+        let persistedAppState = try XCTUnwrap(appStateService.loadAppState())
+        XCTAssertEqual(persistedAppState.selectedProject?.id, project.id)
+        XCTAssertEqual(persistedAppState.currentSession?.id, session.id)
+    }
+
+    func testClockStoreStartStopAndResetUpdateSwiftDataState() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let project = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
+        appStateService.setSelectedProject(project)
+        _ = clockService.switchToProject(project.id)
+
+        XCTAssertEqual(clockService.activeProjectID, project.id)
+        XCTAssertFalse(clockService.isRunning)
+
+        let startedSession = try XCTUnwrap(clockService.start())
+        XCTAssertTrue(clockService.isRunning)
+        XCTAssertEqual(startedSession.projectId, project.id)
+        XCTAssertEqual(startedSession.status, .running)
+        XCTAssertEqual(clockService.activeSession?.status, .running)
+
+        let stoppedSession = try XCTUnwrap(clockService.stop())
+        XCTAssertFalse(clockService.isRunning)
+        XCTAssertEqual(stoppedSession.status, .done)
+        XCTAssertEqual(stoppedSession.projectId, project.id)
+        XCTAssertEqual(appStateService.loadAppState()?.currentSession?.id, stoppedSession.id)
+
+        _ = clockService.reset()
+        XCTAssertEqual(clockService.displayTime, "00:00")
+        XCTAssertNil(appStateService.loadAppState()?.currentSession)
+        XCTAssertEqual(projectSessionService.loadSessions(for: project.id).first(where: { $0.dateKey == ClockService.todayString() }), nil)
     }
 
     func testAppUpdateServiceNormalizesGitHubReleaseTagsAndAssetNames() throws {
@@ -409,12 +450,28 @@ final class ClockerTests: XCTestCase {
     }
 
     private func todayFileURL() -> URL {
-        ClockModel.currentDayFileURL(storageURL: tempDirectory)
+        ClockService.currentDayFileURL(storageURL: tempDirectory)
     }
 
     private func makeProjectStore(legacyStorageURL: URL, modelStoreURL: URL? = nil) throws -> ProjectStore {
         let container = try makeModelContainer(storeURL: modelStoreURL)
         return ProjectStore(legacyStorageURL: legacyStorageURL, modelContainer: container)
+    }
+
+    private func makeClockStore() throws -> (
+        clockService: ClockService,
+        appStateService: AppStateService,
+        projectSessionService: ProjectSessionService,
+        modelContainer: ModelContainer
+    ) {
+        let modelContainer = try makeClockServiceContainer()
+        let projectSessionService = ProjectSessionService(modelContainer: modelContainer)
+        let appStateService = AppStateService(modelContainer: modelContainer)
+        let clockService = ClockService(
+            projectSessionService: projectSessionService,
+            appStateService: appStateService
+        )
+        return (clockService, appStateService, projectSessionService, modelContainer)
     }
 
     private func makeModelContainer(storeURL: URL? = nil) throws -> ModelContainer {
@@ -428,10 +485,26 @@ final class ClockerTests: XCTestCase {
         return try ModelContainer(for: schema, configurations: [configuration])
     }
 
-    private func createHistoryFile(name: String, contents: String) throws -> URL {
-        let url = tempDirectory.appendingPathComponent(name)
-        try contents.write(to: url, atomically: true, encoding: .utf8)
-        return url
+    private func makeClockServiceContainer() throws -> ModelContainer {
+        let schema = Schema([Project.self, Session.self, AppState.self])
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        return try ModelContainer(for: schema, configurations: [configuration])
+    }
+
+    private func makeHistorySession(
+        dateKey: String,
+        createdAt: Date,
+        elapsedSeconds: Int,
+        status: Session.Status
+    ) -> Session {
+        Session(
+            projectId: UUID(),
+            dateKey: dateKey,
+            elapsedSeconds: elapsedSeconds,
+            startedAt: status == .running ? createdAt.addingTimeInterval(-Double(elapsedSeconds)) : nil,
+            status: status,
+            createdAt: createdAt
+        )
     }
 
 }

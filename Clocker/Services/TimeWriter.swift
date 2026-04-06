@@ -47,7 +47,7 @@ final class TimeWriter: @unchecked Sendable {
             let fileURL = Self.currentDayFileURL(storageURL: url, projectID: projectID)
             guard fm.fileExists(atPath: fileURL.path) else { return }
 
-            let line = ClockModel.sessionSeparator + "\n"
+            let line = ClockService.sessionSeparator + "\n"
             if let handle = try? FileHandle(forWritingTo: fileURL) {
                 handle.seekToEndOfFile()
                 handle.write(Data(line.utf8))

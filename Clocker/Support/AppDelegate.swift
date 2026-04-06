@@ -7,13 +7,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
     private let modelContainer = ProjectStore.makeModelContainer()
-    private lazy var projectRepository: ProjectStore = ProjectStore(
-        legacyStorageURL: ClockModel.storageURL,
-        modelContainer: modelContainer
-    )
-    private lazy var clockModel = ClockModel(
-        projectRepository: projectRepository,
-        timeWriter: TimeWriter(storageURL: ClockModel.storageURL)
+    private lazy var projectSessionService = ProjectSessionService(modelContainer: modelContainer)
+    private lazy var appStateService = AppStateService(modelContainer: modelContainer)
+    private lazy var clockService = ClockService(
+        projectSessionService: projectSessionService,
+        appStateService: appStateService
     )
     let loginItemService = LoginItemService()
     let appUpdateService = AppUpdateService()
@@ -32,10 +30,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
 
         NSApp.applicationIconImage = NSImage(named: "Logo")
 
-        clockModel.onTimeChange = { [weak self] _ in
+        clockService.onTimeChange = { [weak self] _ in
             self?.updateStatusItemTitle()
         }
-        clockModel.onRunningStateChange = { [weak self] _ in
+        clockService.onRunningStateChange = { [weak self] _ in
             self?.updateStatusItemTitle()
         }
 
@@ -44,7 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
         popover.animates = true
         popover.contentViewController = NSHostingController(
             rootView: MenuBarPopover()
-                .environmentObject(clockModel)
+                .environmentObject(clockService)
                 .environmentObject(loginItemService)
                 .environmentObject(appUpdateService)
         )
@@ -83,19 +81,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, @unchecked Sendable {
             popover.performClose(nil)
         }
 
-        if clockModel.isRunning {
-            clockModel.stop()
+        if clockService.isRunning {
+            clockService.stop()
         } else {
-            clockModel.start()
+            clockService.start()
         }
     }
 
     private func updateStatusItemTitle() {
         guard let button = statusItem.button else { return }
-        let systemName = clockModel.isRunning ? "pause.fill" : "play.fill"
+        let systemName = clockService.isRunning ? "pause.fill" : "play.fill"
         button.image = NSImage(systemSymbolName: systemName, accessibilityDescription: nil)
         button.image?.isTemplate = true
         button.image?.size = NSSize(width: 12, height: 12)
-        button.title = clockModel.menuBarTitle
+        button.title = clockService.menuBarTitle
     }
 }

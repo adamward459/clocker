@@ -22,42 +22,33 @@ enum HistoryViewMode: String, CaseIterable, Identifiable {
 struct HistoryEntry: Identifiable {
     let id: String
     let title: String
-    let fileURL: URL?
     let secondaryText: String?
     let accessoryText: String?
     let trailingText: String?
     let icon: String
-    var isDone: Bool
-    let allowsStatusToggle: Bool
     var children: [HistoryEntry]
 
     init(
         id: String = UUID().uuidString,
         title: String,
-        fileURL: URL?,
-        secondaryText: String?,
-        accessoryText: String?,
-        trailingText: String?,
+        secondaryText: String? = nil,
+        accessoryText: String? = nil,
+        trailingText: String? = nil,
         icon: String,
-        isDone: Bool,
-        allowsStatusToggle: Bool,
         children: [HistoryEntry] = []
     ) {
         self.id = id
         self.title = title
-        self.fileURL = fileURL
         self.secondaryText = secondaryText
         self.accessoryText = accessoryText
         self.trailingText = trailingText
         self.icon = icon
-        self.isDone = isDone
-        self.allowsStatusToggle = allowsStatusToggle
         self.children = children
     }
 }
 
 struct HistorySection: Identifiable {
-    let id: String
+    let id: UUID
     let projectName: String
     var summaryText: String?
     var entries: [HistoryEntry]
@@ -66,7 +57,7 @@ struct HistorySection: Identifiable {
 struct HistoryPage: View {
     static let viewModeStorageKey = "history.viewMode"
 
-    @EnvironmentObject var clockModel: ClockModel
+    @EnvironmentObject var clockService: ClockService
     @AppStorage(Self.viewModeStorageKey) private var viewModeRawValue = HistoryViewMode.files.rawValue
 
     var navigateBack: () -> Void
@@ -74,8 +65,6 @@ struct HistoryPage: View {
     @State private var backHovered = false
     @State private var sections: [HistorySection] = []
     @State private var expandedEntryIDs: Set<String> = []
-    @State private var errorMessage: String?
-    private let statusStore = HistoryRecordStatusStore()
 
     private var viewMode: HistoryViewMode {
         get { HistoryViewMode(rawValue: viewModeRawValue) ?? .files }
@@ -84,7 +73,6 @@ struct HistoryPage: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Nav bar
             HStack {
                 Button(action: navigateBack) {
                     HStack(spacing: 3) {
@@ -138,10 +126,8 @@ struct HistoryPage: View {
             .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
             .padding(.vertical, 10)
 
-            if let error = errorMessage {
-                emptyState(icon: "exclamationmark.triangle", message: error)
-            } else if sections.isEmpty {
-                emptyState(icon: "folder.badge.questionmark", message: "No records found")
+            if sections.isEmpty {
+                emptyState(icon: "folder.badge.questionmark", message: "No sessions found")
             } else {
                 historyList
             }
@@ -153,7 +139,10 @@ struct HistoryPage: View {
         .onChange(of: viewModeRawValue) { _, _ in
             if isVisible { loadEntries() }
         }
-        .onChange(of: clockModel.projects) { _, _ in
+        .onChange(of: clockService.dataRevision) { _, _ in
+            if isVisible { loadEntries() }
+        }
+        .onChange(of: clockService.displayTime) { _, _ in
             if isVisible { loadEntries() }
         }
     }
@@ -219,9 +208,9 @@ struct HistoryPage: View {
 
     @ViewBuilder
     private func historyEntryRow(_ entry: HistoryEntry, depth: Int) -> some View {
-        let rowFill: Color = entry.allowsStatusToggle
-            ? (entry.isDone ? Color.green.opacity(0.07) : Color.red.opacity(0.05))
-            : ClockerTheme.Colors.hoverFill.opacity(0.12)
+        let rowFill: Color = entry.children.isEmpty
+            ? ClockerTheme.Colors.hoverFill.opacity(0.12)
+            : ClockerTheme.Colors.hoverFill.opacity(0.18)
 
         HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
             Image(systemName: entry.icon)
@@ -274,16 +263,6 @@ struct HistoryPage: View {
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
-
-                if entry.allowsStatusToggle, let fileURL = entry.fileURL {
-                    Button {
-                        toggleStatus(for: fileURL)
-                    } label: {
-                        statusBadge(isDone: entry.isDone)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(entry.isDone ? "Mark as not done" : "Mark as done")
-                }
             }
         }
         .padding(.leading, 18 + CGFloat(depth) * 14)
@@ -310,100 +289,24 @@ struct HistoryPage: View {
     }
 
     private func loadEntries() {
-        let url = clockModel.resolvedStorageURL
-        let fm = FileManager.default
+        var nextSections: [HistorySection] = []
 
-        guard fm.fileExists(atPath: url.path) else {
-            errorMessage = "Folder does not exist"
-            sections = []
-            return
+        for project in clockService.orderedProjects {
+            let sessions = clockService.sessions(for: project.id)
+            guard let section = makeSection(project: project, sessions: sessions) else { continue }
+            nextSections.append(section)
         }
 
-        do {
-            let contents = try fm.contentsOfDirectory(
-                at: url,
-                includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey],
-                options: [.skipsHiddenFiles]
-            )
-
-            var nextSections: [HistorySection] = []
-
-            let sortedContents = contents.sorted {
-                $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedDescending
-            }
-
-            let rootFiles = sortedContents.filter { fileURL in
-                var isDirectory: ObjCBool = false
-                fm.fileExists(atPath: fileURL.path, isDirectory: &isDirectory)
-                return !isDirectory.boolValue
-            }
-
-            if let rootSection = makeSection(id: ClockProject.defaultID, entries: rootFiles) {
-                nextSections.append(rootSection)
-            }
-
-            let projectDirectories = sortedContents.filter { fileURL in
-                var isDirectory: ObjCBool = false
-                fm.fileExists(atPath: fileURL.path, isDirectory: &isDirectory)
-                return isDirectory.boolValue
-            }
-
-            for directory in projectDirectories {
-                let directoryEntries = (try? fm.contentsOfDirectory(
-                    at: directory,
-                    includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey],
-                    options: [.skipsHiddenFiles]
-                )) ?? []
-
-                let files = directoryEntries
-                    .sorted {
-                        $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedDescending
-                    }
-                    .filter { fileURL in
-                        var isDirectory: ObjCBool = false
-                        fm.fileExists(atPath: fileURL.path, isDirectory: &isDirectory)
-                        return !isDirectory.boolValue
-                    }
-
-                guard let section = makeSection(id: directory.lastPathComponent, entries: files) else { continue }
-                nextSections.append(section)
-            }
-
-            let sectionByID = Dictionary(uniqueKeysWithValues: nextSections.map { ($0.id, $0) })
-            var orderedSections: [HistorySection] = []
-
-            for project in clockModel.orderedProjects {
-                if let section = sectionByID[project.id] {
-                    orderedSections.append(section)
-                }
-            }
-
-            for section in nextSections where !clockModel.projects.contains(where: { $0.id == section.id }) {
-                orderedSections.append(section)
-            }
-
-            sections = orderedSections
-            errorMessage = nil
-        } catch {
-            errorMessage = "Unable to read folder"
-            sections = []
-        }
+        sections = nextSections
     }
 
-    private func makeSection(id: String, entries: [URL]) -> HistorySection? {
-        let result = HistoryDataBuilder.makeResult(
-            for: entries,
-            mode: viewMode,
-            isDone: { [statusStore] fileURL in
-                statusStore.isDone(for: fileURL)
-            }
-        )
-
+    private func makeSection(project: Project, sessions: [Session]) -> HistorySection? {
+        let result = HistoryDataBuilder.makeResult(for: sessions, mode: viewMode)
         guard !result.entries.isEmpty else { return nil }
 
         return HistorySection(
-            id: id,
-            projectName: clockModel.projectName(for: id),
+            id: project.id,
+            projectName: project.name,
             summaryText: result.summaryText,
             entries: result.entries
         )
@@ -412,20 +315,6 @@ struct HistoryPage: View {
     private var sectionBackground: some View {
         RoundedRectangle(cornerRadius: ClockerTheme.Size.cornerRadius, style: .continuous)
             .fill(ClockerTheme.Colors.hoverFill.opacity(0.25))
-    }
-
-    private func statusBadge(isDone: Bool) -> some View {
-        let color = isDone ? Color.green : Color.red
-        let systemImage = isDone ? "checkmark.circle.fill" : "xmark.circle.fill"
-
-        return Image(systemName: systemImage)
-            .font(.system(size: 16, weight: .semibold))
-            .foregroundStyle(color)
-            .padding(4)
-            .background(
-                Circle()
-                .fill(color.opacity(0.12))
-            )
     }
 
     private func isExpanded(_ entry: HistoryEntry) -> Bool {
@@ -439,20 +328,6 @@ struct HistoryPage: View {
             expandedEntryIDs.insert(entryID)
         }
     }
-
-    private func toggleStatus(for fileURL: URL) {
-        let nextValue = !statusStore.isDone(for: fileURL)
-        statusStore.setDone(nextValue, for: fileURL)
-        updateStatus(for: fileURL, isDone: nextValue)
-    }
-
-    private func updateStatus(for fileURL: URL, isDone: Bool) {
-        for sectionIndex in sections.indices {
-            guard let entryIndex = sections[sectionIndex].entries.firstIndex(where: { $0.fileURL == fileURL }) else { continue }
-            sections[sectionIndex].entries[entryIndex].isDone = isDone
-            return
-        }
-    }
 }
 
 enum HistoryDataBuilder {
@@ -460,7 +335,8 @@ enum HistoryDataBuilder {
         let id: Date
         let label: String
         let totalSeconds: Int
-        let fileCount: Int
+        let sessionCount: Int
+        let sessions: [Session]
     }
 
     struct Result {
@@ -469,34 +345,30 @@ enum HistoryDataBuilder {
     }
 
     static func makeResult(
-        for fileURLs: [URL],
+        for sessions: [Session],
         mode: HistoryViewMode,
-        isDone: (URL) -> Bool,
         calendar: Calendar = .autoupdatingCurrent
     ) -> Result {
         switch mode {
         case .files:
-            let entries = fileURLs
-                .compactMap { makeFileEntry($0, isDone: isDone) }
-                .sorted {
-                    $0.title.localizedStandardCompare($1.title) == .orderedDescending
-                }
-            return Result(entries: entries, summaryText: nil)
+            let entries = sessions
+                .sorted { $0.createdAt > $1.createdAt }
+                .compactMap(makeSessionEntry(_:))
+            let totalSeconds = sessions.reduce(0) { $0 + $1.currentElapsedSeconds }
+            return Result(entries: entries, summaryText: formatSummaryDuration(totalSeconds))
         case .week, .month:
-            let buckets = groupedBuckets(for: fileURLs, mode: mode, calendar: calendar)
+            let buckets = groupedBuckets(for: sessions, mode: mode, calendar: calendar)
             let totalSeconds = buckets.reduce(0) { $0 + $1.totalSeconds }
             let entries = buckets.map { bucket in
                 HistoryEntry(
-                    id: "\(bucket.id.timeIntervalSince1970)",
+                    id: "bucket-\(bucket.id.timeIntervalSince1970)",
                     title: bucket.label,
-                    fileURL: nil,
-                    secondaryText: bucket.fileCount == 1 ? "1 file" : "\(bucket.fileCount) files",
-                    accessoryText: nil,
+                    secondaryText: bucket.sessionCount == 1 ? "1 session" : "\(bucket.sessionCount) sessions",
                     trailingText: formatSummaryDuration(bucket.totalSeconds),
                     icon: "clock.fill",
-                    isDone: false,
-                    allowsStatusToggle: false,
-                    children: []
+                    children: bucket.sessions
+                        .sorted { $0.createdAt > $1.createdAt }
+                        .compactMap(makeSessionEntry(_:))
                 )
             }
             return Result(entries: entries, summaryText: formatSummaryDuration(totalSeconds))
@@ -504,11 +376,11 @@ enum HistoryDataBuilder {
     }
 
     static func groupedBuckets(
-        for fileURLs: [URL],
+        for sessions: [Session],
         mode: HistoryViewMode,
         calendar: Calendar = .autoupdatingCurrent
     ) -> [Bucket] {
-        let snapshots = fileURLs.compactMap { snapshot(for: $0) }
+        let snapshots = sessions.compactMap { snapshot(for: $0) }
         let grouped = Dictionary(grouping: snapshots) { snapshot in
             bucketStartDate(for: snapshot.date, mode: mode, calendar: calendar)
         }
@@ -518,7 +390,8 @@ enum HistoryDataBuilder {
                 id: startDate,
                 label: bucketLabel(for: startDate, mode: mode),
                 totalSeconds: snapshots.reduce(0) { $0 + $1.totalSeconds },
-                fileCount: snapshots.count
+                sessionCount: snapshots.count,
+                sessions: snapshots.map(\.session)
             )
         }
         .sorted { $0.id > $1.id }
@@ -534,60 +407,48 @@ enum HistoryDataBuilder {
     private struct Snapshot {
         let date: Date
         let totalSeconds: Int
+        let session: Session
     }
 
-    private static func makeFileEntry(_ fileURL: URL, isDone: (URL) -> Bool) -> HistoryEntry? {
-        let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
-        let contents = (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
-        let sessionDurations = ClockModel.parseSessionDurations(from: contents)
-        guard !sessionDurations.isEmpty else { return nil }
+    private static func makeSessionEntry(_ session: Session) -> HistoryEntry? {
+        let formatter = DateFormatter()
+        formatter.calendar = .autoupdatingCurrent
+        formatter.timeZone = .autoupdatingCurrent
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
 
-        let totalSeconds = sessionDurations.reduce(0, +)
-        let children = sessionDurations.enumerated().reversed().map { index, duration -> HistoryEntry in
-            HistoryEntry(
-                id: "\(fileURL.path)#session-\(index)",
-                title: "Session \(index + 1)",
-                fileURL: nil,
-                secondaryText: nil,
-                accessoryText: nil,
-                trailingText: formatSummaryDuration(duration),
-                icon: "clock.fill",
-                isDone: false,
-                allowsStatusToggle: false,
-                children: []
-            )
+        let statusText: String
+        switch session.status {
+        case .running:
+            statusText = "Running"
+        case .done:
+            statusText = "Done"
+        case .undone:
+            statusText = "Undone"
         }
 
         return HistoryEntry(
-            id: fileURL.path,
-            title: fileURL.lastPathComponent,
-            fileURL: fileURL,
-            secondaryText: sessionDurations.count == 1 ? "1 session" : "\(sessionDurations.count) sessions",
-            accessoryText: formatSize(values?.fileSize ?? 0),
-            trailingText: formatSummaryDuration(totalSeconds),
-            icon: iconForFile(fileURL),
-            isDone: isDone(fileURL),
-            allowsStatusToggle: true,
-            children: children
+            id: session.id.uuidString,
+            title: formatter.string(from: session.createdAt),
+            secondaryText: session.dateKey,
+            accessoryText: statusText,
+            trailingText: formatSummaryDuration(session.currentElapsedSeconds),
+            icon: "clock.fill"
         )
     }
 
-    private static func snapshot(for fileURL: URL) -> Snapshot? {
-        let contents = (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
-        let totalSeconds = ClockModel.parseSessionDurations(from: contents).reduce(0, +)
-        guard totalSeconds > 0 else { return nil }
-        let values = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey])
-        let date = fileDateKey(for: fileURL) ?? values?.contentModificationDate ?? Date()
-        return Snapshot(date: date, totalSeconds: totalSeconds)
+    private static func snapshot(for session: Session) -> Snapshot? {
+        let date = dateFromKey(session.dateKey) ?? session.createdAt
+        return Snapshot(date: date, totalSeconds: session.currentElapsedSeconds, session: session)
     }
 
-    private static func fileDateKey(for fileURL: URL) -> Date? {
+    private static func dateFromKey(_ key: String) -> Date? {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.date(from: fileURL.deletingPathExtension().lastPathComponent)
+        return formatter.date(from: key)
     }
 
     private static func bucketStartDate(for date: Date, mode: HistoryViewMode, calendar: Calendar) -> Date {
@@ -617,31 +478,6 @@ enum HistoryDataBuilder {
         case .month:
             formatter.dateFormat = "MMMM yyyy"
             return formatter.string(from: date)
-        }
-    }
-
-    private static func readLastRecord(from contents: String) -> String? {
-        let lines = contents
-            .components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-        return lines.last
-    }
-
-    private static func formatSize(_ bytes: Int) -> String {
-        ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
-    }
-
-    private static func iconForFile(_ url: URL) -> String {
-        switch url.pathExtension.lowercased() {
-        case "json": return "doc.text.fill"
-        case "csv": return "tablecells.fill"
-        case "txt", "log": return "doc.plaintext.fill"
-        case "sqlite", "db": return "cylinder.fill"
-        default:
-            var isDir: ObjCBool = false
-            FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir)
-            return isDir.boolValue ? "folder.fill" : "doc.fill"
         }
     }
 }

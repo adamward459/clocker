@@ -75,7 +75,7 @@ final class StoredLiveSession {
         key: String = StoredLiveSession.defaultKey,
         activeProjectID: String = ClockProject.defaultID,
         elapsedSeconds: Int = 0,
-        trackingDate: String = ClockModel.todayString(),
+        trackingDate: String = ClockService.todayString(),
         isRunning: Bool = false
     ) {
         self.key = key
@@ -202,11 +202,11 @@ final class ProjectStore: ProjectRepository {
     }
 
     static func makeModelContainer() -> ModelContainer {
-        makeModelContainer(baseURL: ClockModel.storageURL)
+        makeModelContainer(baseURL: ClockService.storageURL)
     }
 
     static func makeModelContainer(baseURL: URL) -> ModelContainer {
-        let schema = Schema([StoredProject.self, StoredAppState.self, StoredLiveSession.self])
+        let schema = Schema([Project.self, Session.self, AppState.self])
         let storeURL = defaultModelStoreURL(baseURL: baseURL)
         try? FileManager.default.createDirectory(
             at: storeURL.deletingLastPathComponent(),
@@ -223,8 +223,8 @@ final class ProjectStore: ProjectRepository {
 
     private static func defaultModelStoreURL(baseURL: URL) -> URL {
         baseURL
-            .appendingPathComponent(".swiftdata", isDirectory: true)
-            .appendingPathComponent("ProjectStore.store")
+            .appendingPathComponent("SwiftData", isDirectory: true)
+            .appendingPathComponent("Clocker.store")
     }
 
     private func importLegacyDataIfNeeded() {
@@ -259,7 +259,7 @@ final class ProjectStore: ProjectRepository {
         modelContext.insert(StoredLiveSession(
             activeProjectID: loadLegacyActiveProjectID(validProjectIDs: Set(projectsToStore.map(\.id))),
             elapsedSeconds: 0,
-            trackingDate: ClockModel.todayString(),
+            trackingDate: ClockService.todayString(),
             isRunning: false
         ))
         try? modelContext.save()

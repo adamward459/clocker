@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MainMenuPage: View {
-    @EnvironmentObject var clockModel: ClockModel
+    @EnvironmentObject var clockService: ClockService
     @EnvironmentObject var loginItemService: LoginItemService
     @EnvironmentObject var appUpdateService: AppUpdateService
     var navigateToHistory: () -> Void
@@ -16,7 +16,7 @@ struct MainMenuPage: View {
                 VStack(spacing: 10) {
                     Button(action: navigateToProjects) {
                         HStack(spacing: 4) {
-                            Text(clockModel.activeProjectName)
+                            Text(clockService.activeProjectName)
                                 .font(ClockerTheme.Fonts.caption)
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -33,28 +33,28 @@ struct MainMenuPage: View {
                     }
                     .buttonStyle(.plain)
 
-                    Text(clockModel.displayTime)
+                    Text(clockService.displayTime)
                         .font(ClockerTheme.Fonts.clockDisplay)
                         .monospacedDigit()
 
                     statusLine
 
                     HStack(spacing: 12) {
-                        if clockModel.isRunning {
-                            Button("Stop") { clockModel.stop() }
+                        if clockService.isRunning {
+                            Button("Stop") { clockService.stop() }
                                 .buttonStyle(.bordered)
                                 .controlSize(.small)
                         } else {
-                            Button("Start") { clockModel.start() }
+                            Button("Start") { clockService.start() }
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.small)
-                            if clockModel.displayTime != "00:00" {
-                                Button("New Session") { clockModel.startNewSession() }
+                            if clockService.displayTime != "00:00" {
+                                Button("New Session") { clockService.startNewSession() }
                                     .buttonStyle(.bordered)
                                     .controlSize(.small)
                             }
                         }
-                        if !clockModel.isRunning && clockModel.displayTime != "00:00" {
+                        if !clockService.isRunning && clockService.displayTime != "00:00" {
                             Button("Reset") {
                                 isShowingResetConfirmation = true
                             }
@@ -90,35 +90,6 @@ struct MainMenuPage: View {
                                 .labelsHidden()
                         }
                     }
-
-                // Storage
-                    Button {
-                        let url = clockModel.resolvedStorageURL
-                        let fm = FileManager.default
-                        if !fm.fileExists(atPath: url.path) {
-                            try? fm.createDirectory(at: url, withIntermediateDirectories: true)
-                        }
-                        NSWorkspace.shared.open(url)
-                    } label: {
-                        HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
-                            MenuIcon(systemName: "folder")
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text("Storage")
-                                    .font(ClockerTheme.Fonts.rowLabel)
-                                Text(clockModel.resolvedStorageURL.path.replacingOccurrences(of: NSHomeDirectory(), with: "~"))
-                                    .font(ClockerTheme.Fonts.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                            }
-                            Spacer()
-                            Image(systemName: "arrow.up.forward.square")
-                                .font(ClockerTheme.Fonts.chevron)
-                                .foregroundStyle(ClockerTheme.Colors.trailingAccessory)
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(MenuRowButtonStyle())
 
                 // History
                     Button(action: navigateToHistory) {
@@ -209,7 +180,7 @@ struct MainMenuPage: View {
             titleVisibility: .visible
         ) {
             Button("Reset", role: .destructive) {
-                clockModel.reset()
+                clockService.reset()
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -232,7 +203,7 @@ struct MainMenuPage: View {
 
     @ViewBuilder
     private var statusLine: some View {
-        switch clockModel.restoreState {
+        switch clockService.restoreState {
         case .restoring:
             HStack(spacing: 6) {
                 ProgressView()
@@ -245,7 +216,7 @@ struct MainMenuPage: View {
         case .restored:
             statusText(label: "Restored today's record", systemImage: "checkmark.circle")
         case .unavailable, .idle:
-            statusText(label: clockModel.isRunning ? "Tracking time" : "Ready to start", systemImage: clockModel.isRunning ? "timer" : "pause.circle")
+            statusText(label: clockService.isRunning ? "Tracking time" : "Ready to start", systemImage: clockService.isRunning ? "timer" : "pause.circle")
         }
     }
 

@@ -27,7 +27,7 @@ private enum PageNavigationDirection {
 }
 
 struct MenuBarPopover: View {
-    @EnvironmentObject var clockModel: ClockModel
+    @EnvironmentObject var clockService: ClockService
     @State private var currentPage: PopoverPage = .main
     @State private var navigationDirection: PageNavigationDirection = .forward
 

@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct ProjectsPage: View {
-    @EnvironmentObject var clockModel: ClockModel
+    @EnvironmentObject var clockService: ClockService
     var navigateBack: () -> Void
     var isVisible: Bool = false
 
     @State private var backHovered = false
     @State private var isEditing = false
-    @State private var editingProjectID: String?
+    @State private var editingProjectID: UUID?
     @State private var editingName = ""
     @State private var newProjectName = ""
 
@@ -60,7 +60,7 @@ struct ProjectsPage: View {
             // Project list
             ScrollView {
                 VStack(spacing: 2) {
-                    ForEach(clockModel.orderedProjects) { project in
+                    ForEach(clockService.orderedProjects) { project in
                         projectRow(project)
                     }
                 }
@@ -94,8 +94,8 @@ struct ProjectsPage: View {
     }
 
     @ViewBuilder
-    private func projectRow(_ project: ClockProject) -> some View {
-        let isActive = project.id == clockModel.activeProjectID
+    private func projectRow(_ project: Project) -> some View {
+        let isActive = project.id == clockService.activeProjectID
 
         if editingProjectID == project.id {
             // Inline rename
@@ -129,9 +129,9 @@ struct ProjectsPage: View {
         } else if isEditing {
             // Edit mode row
             HStack(spacing: 8) {
-                if !project.isDefault {
+                if clockService.orderedProjects.count > 1 {
                     Button {
-                        clockModel.deleteProject(project.id)
+                        clockService.deleteProject(project.id)
                     } label: {
                         Image(systemName: "minus.circle.fill")
                             .font(.system(size: 14))
@@ -163,7 +163,7 @@ struct ProjectsPage: View {
         } else {
             // Normal selection row
             Button {
-                clockModel.switchToProject(project.id)
+                clockService.switchToProject(project.id)
                 navigateBack()
             } label: {
                 HStack(spacing: ClockerTheme.Spacing.iconTextGap) {
@@ -185,7 +185,7 @@ struct ProjectsPage: View {
 
     private func commitRename() {
         if let id = editingProjectID {
-            clockModel.renameProject(id, to: editingName)
+            clockService.renameProject(id, to: editingName)
         }
         editingProjectID = nil
         editingName = ""
@@ -194,7 +194,7 @@ struct ProjectsPage: View {
     private func createProject() {
         let name = newProjectName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return }
-        if clockModel.createProject(named: name) != nil {
+        if clockService.createProject(named: name) != nil {
             newProjectName = ""
         }
     }
