@@ -414,6 +414,84 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(projectSessionService.loadSessions(for: project.id).first(where: { $0.dateKey == ClockService.todayString() }), nil)
     }
 
+    func testClockServiceStartResumesUndoneSessionInsteadOfCreatingANewOne() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let project = try XCTUnwrap(projectSessionService.createProject(named: "Design"))
+        let undoneSession = try XCTUnwrap(
+            projectSessionService.createSession(
+                for: project.id,
+                dateKey: ClockService.todayString(),
+                elapsedSeconds: 45,
+                startedAt: nil,
+                status: .undone
+            )
+        )
+
+        appStateService.setSelectedProject(project)
+        _ = clockService.switchToProject(project.id)
+
+        let startedSession = try XCTUnwrap(clockService.start())
+
+        XCTAssertEqual(startedSession.id, undoneSession.id)
+        XCTAssertEqual(startedSession.status, .running)
+        XCTAssertTrue(clockService.isRunning)
+        XCTAssertEqual(projectSessionService.loadSessions(for: project.id).count, 1)
+    }
+
+    func testClockServiceStartNewSessionForcesANewSession() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let project = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
+        appStateService.setSelectedProject(project)
+        _ = clockService.switchToProject(project.id)
+
+        let firstSession = try XCTUnwrap(clockService.start())
+        _ = clockService.stop()
+
+        let newSession = try XCTUnwrap(clockService.startNewSession())
+
+        XCTAssertNotEqual(newSession.id, firstSession.id)
+        XCTAssertEqual(newSession.status, .running)
+        XCTAssertEqual(projectSessionService.loadSessions(for: project.id).filter { $0.dateKey == ClockService.todayString() }.count, 2)
+    }
+
+    func testClockServiceMarksCurrentSessionDoneAndPausesClock() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let project = try XCTUnwrap(projectSessionService.createProject(named: "Design"))
+        appStateService.setSelectedProject(project)
+        _ = clockService.switchToProject(project.id)
+
+        let startedSession = try XCTUnwrap(clockService.start())
+        clockService.updateHistorySessionsStatus([startedSession], to: .done)
+
+        let currentSession = try XCTUnwrap(clockService.activeSession)
+        XCTAssertEqual(currentSession.id, startedSession.id)
+        XCTAssertEqual(currentSession.status, .done)
+        XCTAssertEqual(clockService.displayTime, ClockService.formatElapsed(startedSession.elapsedSeconds))
+        XCTAssertFalse(clockService.isRunning)
+        XCTAssertEqual(appStateService.loadAppState()?.currentSession?.id, currentSession.id)
+        XCTAssertEqual(projectSessionService.loadSessions(for: project.id).filter { $0.dateKey == ClockService.todayString() }.count, 1)
+        XCTAssertEqual(startedSession.status, .done)
+    }
+
+    func testClockServiceMarksCurrentSessionUndoneAndPausesClock() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let project = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
+        appStateService.setSelectedProject(project)
+        _ = clockService.switchToProject(project.id)
+
+        let startedSession = try XCTUnwrap(clockService.start())
+        clockService.updateHistorySessionsStatus([startedSession], to: .undone)
+
+        let currentSession = try XCTUnwrap(clockService.activeSession)
+        XCTAssertEqual(currentSession.id, startedSession.id)
+        XCTAssertEqual(currentSession.status, .undone)
+        XCTAssertEqual(clockService.displayTime, ClockService.formatElapsed(startedSession.elapsedSeconds))
+        XCTAssertFalse(clockService.isRunning)
+        XCTAssertEqual(appStateService.loadAppState()?.currentSession?.id, currentSession.id)
+        XCTAssertEqual(projectSessionService.loadSessions(for: project.id).filter { $0.dateKey == ClockService.todayString() }.count, 1)
+        XCTAssertEqual(startedSession.status, .undone)
+    }
+
     func testAppUpdateServiceNormalizesGitHubReleaseTagsAndAssetNames() throws {
         let payload = """
         [

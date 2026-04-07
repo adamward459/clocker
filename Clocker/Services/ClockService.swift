@@ -109,9 +109,6 @@ final class ClockService: ObservableObject, @unchecked Sendable {
             || state.activeSession?.status == .undone
         {
             state.activeSession = projectSessionService.loadLatestSession(for: state.activeProjectID, dateKey: today)
-            if state.activeSession?.status == .undone {
-                state.activeSession = nil
-            }
         }
 
         if state.activeSession == nil {
@@ -237,7 +234,8 @@ final class ClockService: ObservableObject, @unchecked Sendable {
         guard !uniqueSessions.isEmpty else { return }
 
         let activeSessionID = state.activeSession?.id
-        let needsStop = isRunning && uniqueSessions.contains(where: { $0.id == activeSessionID })
+        let activeSessionWasUpdated = uniqueSessions.contains(where: { $0.id == activeSessionID })
+        let needsStop = isRunning && activeSessionWasUpdated
         if needsStop {
             _ = stop()
         }
@@ -255,18 +253,13 @@ final class ClockService: ObservableObject, @unchecked Sendable {
             projectSessionService.saveSession(session)
 
             if session.id == activeSessionID {
-                switch status {
-                case .done:
-                    appStateService.setCurrentSession(session)
-                case .undone:
-                    state.activeSession = nil
-                    appStateService.clearCurrentSession()
-                    state.restoreState = .idle
-                    state.displayTime = "00:00"
-                    onTimeChange?(state.displayTime)
-                case .running:
-                    break
-                }
+                appStateService.setCurrentSession(session)
+                state.activeSession = session
+                state.isRunning = false
+                state.restoreState = .idle
+                state.displayTime = Self.formatElapsed(session.currentElapsedSeconds)
+                onTimeChange?(state.displayTime)
+                onRunningStateChange?(false)
             }
         }
 
