@@ -51,6 +51,7 @@ private enum HistoryEntryStatusDisplay {
     case done
     case undone
     case running
+    case paused
     case mixed
 }
 
@@ -342,6 +343,8 @@ struct HistoryPage: View {
             return Color.red.opacity(0.06)
         case .running:
             return Color.blue.opacity(0.06)
+        case .paused:
+            return Color.orange.opacity(0.08)
         case .mixed:
             return ClockerTheme.Colors.hoverFill.opacity(0.18)
         }
@@ -362,6 +365,9 @@ struct HistoryPage: View {
         case .running:
             symbol = "timer.circle.fill"
             color = .blue
+        case .paused:
+            symbol = "pause.circle.fill"
+            color = .orange
         case .mixed:
             symbol = "circle.dashed"
             color = .secondary
@@ -381,7 +387,7 @@ struct HistoryPage: View {
         switch aggregateStatus(for: entry.sessions) {
         case .done:
             return entry.children.isEmpty ? "Mark session as undone" : "Mark session group as undone"
-        case .undone, .running, .mixed:
+        case .undone, .running, .paused, .mixed:
             return entry.children.isEmpty ? "Mark session as done" : "Mark session group as done"
         }
     }
@@ -396,6 +402,8 @@ struct HistoryPage: View {
                 return .undone
             case .running:
                 return .running
+            case .paused:
+                return .paused
             }
         }
         return .mixed
@@ -505,6 +513,8 @@ enum HistoryDataBuilder {
         switch session.status {
         case .running:
             statusText = "Running"
+        case .paused:
+            statusText = "Paused"
         case .done:
             statusText = "Done"
         case .undone:

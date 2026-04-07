@@ -216,7 +216,12 @@ struct MainMenuPage: View {
         case .restored:
             statusText(label: "Restored today's record", systemImage: "checkmark.circle")
         case .unavailable, .idle:
-            statusText(label: clockService.isRunning ? "Tracking time" : "Ready to start", systemImage: clockService.isRunning ? "timer" : "pause.circle")
+            let isPaused = clockService.activeSession?.status == .paused
+            let systemImage = clockService.isRunning ? "timer" : "pause.circle"
+            statusText(
+                label: clockService.isRunning ? "Tracking time" : (isPaused ? "Paused" : "Ready to start"),
+                systemImage: systemImage
+            )
         }
     }
 

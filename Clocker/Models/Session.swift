@@ -5,6 +5,7 @@ import SwiftData
 final class Session {
     enum Status: String, Codable, CaseIterable {
         case running
+        case paused
         case done
         case undone
     }
@@ -64,7 +65,7 @@ final class Session {
             elapsedSeconds += max(delta, 0)
         }
         startedAt = nil
-        status = .done
+        status = .paused
     }
 
     func markDone() {

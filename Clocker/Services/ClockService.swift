@@ -246,6 +246,8 @@ final class ClockService: ObservableObject, @unchecked Sendable {
                 session.markDone()
             case .undone:
                 session.markUndone()
+            case .paused:
+                continue
             case .running:
                 continue
             }
