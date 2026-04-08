@@ -355,7 +355,7 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(projectSessionService.loadProjects().count, 1)
     }
 
-    func testClockStoreRestoresSelectedProjectAndLiveSessionFromSwiftData() throws {
+    func testClockStoreRestoresSelectedProjectAndLiveSessionWithoutAutoStarting() throws {
         let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
         let project = try XCTUnwrap(projectSessionService.createProject(named: "Design"))
         let session = try XCTUnwrap(
@@ -375,16 +375,18 @@ final class ClockerTests: XCTestCase {
 
         XCTAssertEqual(result.selectedProject.id, project.id)
         XCTAssertEqual(result.session?.id, session.id)
-        XCTAssertEqual(result.isRunning, true)
+        XCTAssertEqual(result.isRunning, false)
         XCTAssertEqual(result.displayTime, "02:05")
         XCTAssertEqual(result.restoreState, .restored)
         XCTAssertEqual(clockService.activeProjectID, project.id)
         XCTAssertEqual(clockService.displayTime, "02:05")
-        XCTAssertTrue(clockService.isRunning)
+        XCTAssertFalse(clockService.isRunning)
+        XCTAssertEqual(result.session?.status, .paused)
 
         let persistedAppState = try XCTUnwrap(appStateService.loadAppState())
         XCTAssertEqual(persistedAppState.selectedProject?.id, project.id)
         XCTAssertEqual(persistedAppState.currentSession?.id, session.id)
+        XCTAssertEqual(persistedAppState.currentSession?.status, .paused)
     }
 
     func testClockStoreStartStopAndResetUpdateSwiftDataState() throws {

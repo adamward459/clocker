@@ -64,13 +64,27 @@ final class ClockStateRestorer {
            currentSession.projectId == projectID,
            currentSession.dateKey == today,
            currentSession.status != .undone {
-            return currentSession
+            return normalizedRestoredSession(currentSession)
         }
 
         guard let latestSession = projectSessionService.loadLatestSession(for: projectID, dateKey: today) else {
             return nil
         }
 
-        return latestSession.status == .undone ? nil : latestSession
+        guard latestSession.status != .undone else {
+            return nil
+        }
+
+        return normalizedRestoredSession(latestSession)
+    }
+
+    private func normalizedRestoredSession(_ session: Session) -> Session {
+        guard session.status == .running else {
+            return session
+        }
+
+        session.pauseRunning()
+        projectSessionService.saveSession(session)
+        return session
     }
 }

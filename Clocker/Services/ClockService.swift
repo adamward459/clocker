@@ -355,7 +355,11 @@ final class ClockService: ObservableObject, @unchecked Sendable {
             return nil
         }
 
-        return session.status == .undone ? nil : session
+        guard session.status != .undone else {
+            return nil
+        }
+
+        return normalizedRestoredSession(session)
     }
 
     private func handleDayChangeIfNeeded() {
@@ -406,7 +410,12 @@ final class ClockService: ObservableObject, @unchecked Sendable {
     }
 
     private func makeRestorationResult(selectedProject: Project, session: Session?) -> ClockRestorationResult {
-        let restorableSession = session?.status == .undone ? nil : session
+        let restorableSession: Session?
+        if let session, session.status != .undone {
+            restorableSession = normalizedRestoredSession(session)
+        } else {
+            restorableSession = nil
+        }
         let elapsedSeconds = restorableSession?.currentElapsedSeconds ?? 0
         let isRunning = restorableSession?.isRunning ?? false
         let restoreState: RestoreState = restorableSession == nil ? .unavailable : ((isRunning || elapsedSeconds > 0) ? .restored : .idle)
@@ -420,6 +429,16 @@ final class ClockService: ObservableObject, @unchecked Sendable {
             restoreState: restoreState,
             trackingDate: Self.todayString()
         )
+    }
+
+    private func normalizedRestoredSession(_ session: Session) -> Session {
+        guard session.status == .running else {
+            return session
+        }
+
+        session.pauseRunning()
+        projectSessionService.saveSession(session)
+        return session
     }
 
     nonisolated static func storageFolderName(bundleIdentifier: String?) -> String {
