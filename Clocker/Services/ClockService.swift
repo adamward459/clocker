@@ -268,6 +268,23 @@ final class ClockService: ObservableObject, @unchecked Sendable {
         bumpDataRevision()
     }
 
+    func deleteSession(_ sessionId: UUID) {
+        guard let session = projectSessionService.loadSession(id: sessionId) else { return }
+
+        let shouldRefreshSelectedProject = session.projectId == state.activeProjectID
+        if isRunning, state.activeSession?.id == session.id {
+            _ = stop()
+        }
+
+        projectSessionService.deleteSession(sessionId)
+
+        if shouldRefreshSelectedProject {
+            refreshStateForSelectedProject()
+        } else {
+            bumpDataRevision()
+        }
+    }
+
     func renameProject(_ projectID: UUID, to newName: String) {
         let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return }

@@ -72,6 +72,7 @@ struct HistoryPage: View {
     var navigateBack: () -> Void
     var isVisible: Bool = false
     @State private var backHovered = false
+    @State private var sessionPendingDeletion: SessionDeletionTarget?
     @State private var sections: [HistorySection] = []
     @State private var expandedEntryIDs: Set<String> = []
 
@@ -153,6 +154,23 @@ struct HistoryPage: View {
         }
         .onChange(of: clockService.displayTime) { _, _ in
             if isVisible { loadEntries() }
+        }
+        .confirmationDialog(
+            "Delete session?",
+            isPresented: Binding(
+                get: { sessionPendingDeletion != nil },
+                set: { if !$0 { sessionPendingDeletion = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                deletePendingSession()
+            }
+            Button("Cancel", role: .cancel) {
+                sessionPendingDeletion = nil
+            }
+        } message: {
+            Text(deleteSessionMessage)
         }
         .frame(width: Self.preferredWidth)
     }
@@ -280,6 +298,24 @@ struct HistoryPage: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(statusAccessibilityLabel(for: entry))
+                }
+
+                if canDeleteSession(entry), let session = entry.sessions.first {
+                    Button {
+                        sessionPendingDeletion = SessionDeletionTarget(
+                            id: session.id,
+                            title: entry.title,
+                            details: deletionDetails(for: entry),
+                            isCurrentSession: clockService.activeSession?.id == session.id
+                        )
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.red)
+                            .frame(width: 18, height: 18)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Delete session")
                 }
             }
         }
@@ -414,6 +450,34 @@ struct HistoryPage: View {
         clockService.updateHistorySessionsStatus(entry.sessions, to: nextStatus)
     }
 
+    private func canDeleteSession(_ entry: HistoryEntry) -> Bool {
+        entry.children.isEmpty && entry.sessions.count == 1
+    }
+
+    private func deletionDetails(for entry: HistoryEntry) -> String {
+        let duration = entry.trailingText ?? "00:00:00"
+        let status = entry.accessoryText ?? "session"
+        return "\(status) - \(duration)"
+    }
+
+    private var deleteSessionMessage: String {
+        guard let target = sessionPendingDeletion else {
+            return "This will permanently remove the selected session from history."
+        }
+
+        if target.isCurrentSession {
+            return "\(target.title) (\(target.details)) is the current session. Deleting it will stop tracking and remove it from history."
+        }
+
+        return "This will permanently remove \(target.title) (\(target.details)) from history. This action cannot be undone."
+    }
+
+    private func deletePendingSession() {
+        guard let target = sessionPendingDeletion else { return }
+        clockService.deleteSession(target.id)
+        sessionPendingDeletion = nil
+    }
+
     private func isExpanded(_ entry: HistoryEntry) -> Bool {
         expandedEntryIDs.contains(entry.id)
     }
@@ -424,6 +488,13 @@ struct HistoryPage: View {
         } else {
             expandedEntryIDs.insert(entryID)
         }
+    }
+
+    private struct SessionDeletionTarget: Identifiable {
+        let id: UUID
+        let title: String
+        let details: String
+        let isCurrentSession: Bool
     }
 }
 

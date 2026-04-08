@@ -131,7 +131,7 @@ final class ClockerTests: XCTestCase {
         XCTAssertNotNil(projectSessionService.loadProjects().first(where: { $0.id == created.id }))
     }
 
-    func testHistoryDataBuilderBuildsFileEntriesInFilesMode() throws {
+    func testHistoryDataBuilderBuildsSessionEntriesInWeekMode() throws {
         let sessions = [
             makeHistorySession(
                 dateKey: "2026-01-01",
@@ -143,7 +143,7 @@ final class ClockerTests: XCTestCase {
 
         let result = HistoryDataBuilder.makeResult(
             for: sessions,
-            mode: .files
+            mode: .week
         )
 
         XCTAssertEqual(result.summaryText, "00:00:59")
@@ -154,7 +154,7 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(result.entries[0].children.count, 0)
     }
 
-    func testHistoryDataBuilderBuildsSessionChildrenInFilesMode() throws {
+    func testHistoryDataBuilderBuildsSessionChildrenInWeekMode() throws {
         let sessions = [
             makeHistorySession(
                 dateKey: "2026-01-02",
@@ -172,7 +172,7 @@ final class ClockerTests: XCTestCase {
 
         let result = HistoryDataBuilder.makeResult(
             for: sessions,
-            mode: .files
+            mode: .week
         )
 
         XCTAssertEqual(result.entries.count, 2)
@@ -206,9 +206,9 @@ final class ClockerTests: XCTestCase {
 
         XCTAssertEqual(buckets.count, 2)
         XCTAssertEqual(buckets[0].totalSeconds, 120)
-        XCTAssertEqual(buckets[0].fileCount, 1)
+        XCTAssertEqual(buckets[0].sessionCount, 1)
         XCTAssertEqual(buckets[1].totalSeconds, 60)
-        XCTAssertEqual(buckets[1].fileCount, 1)
+        XCTAssertEqual(buckets[1].sessionCount, 1)
     }
 
     func testHistoryDataBuilderGroupsMonthsAcrossBoundaries() throws {
@@ -492,6 +492,22 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(appStateService.loadAppState()?.currentSession?.id, currentSession.id)
         XCTAssertEqual(projectSessionService.loadSessions(for: project.id).filter { $0.dateKey == ClockService.todayString() }.count, 1)
         XCTAssertEqual(startedSession.status, .undone)
+    }
+
+    func testClockServiceDeletesActiveSessionAndClearsState() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let project = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
+        appStateService.setSelectedProject(project)
+        _ = clockService.switchToProject(project.id)
+
+        let startedSession = try XCTUnwrap(clockService.start())
+        clockService.deleteSession(startedSession.id)
+
+        XCTAssertNil(clockService.activeSession)
+        XCTAssertFalse(clockService.isRunning)
+        XCTAssertEqual(clockService.displayTime, "00:00")
+        XCTAssertTrue(projectSessionService.loadSessions(for: project.id).isEmpty)
+        XCTAssertNil(appStateService.loadAppState()?.currentSession)
     }
 
     func testAppUpdateServiceNormalizesGitHubReleaseTagsAndAssetNames() throws {
