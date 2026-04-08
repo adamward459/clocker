@@ -235,8 +235,9 @@ final class ClockService: ObservableObject, @unchecked Sendable {
 
         let activeSessionID = state.activeSession?.id
         let activeSessionWasUpdated = uniqueSessions.contains(where: { $0.id == activeSessionID })
-        let needsStop = isRunning && activeSessionWasUpdated
-        if needsStop {
+        let shouldCreateReplacementSession = status == .done && activeSessionWasUpdated
+
+        if shouldCreateReplacementSession, isRunning {
             _ = stop()
         }
 
@@ -254,7 +255,7 @@ final class ClockService: ObservableObject, @unchecked Sendable {
 
             projectSessionService.saveSession(session)
 
-            if session.id == activeSessionID {
+            if session.id == activeSessionID && !shouldCreateReplacementSession {
                 appStateService.setCurrentSession(session)
                 state.activeSession = session
                 state.isRunning = false
@@ -263,6 +264,28 @@ final class ClockService: ObservableObject, @unchecked Sendable {
                 onTimeChange?(state.displayTime)
                 onRunningStateChange?(false)
             }
+        }
+
+        if shouldCreateReplacementSession, let currentSession = state.activeSession, currentSession.id == activeSessionID {
+            if let replacementSession = projectSessionService.createSession(
+                for: currentSession.projectId,
+                dateKey: currentSession.dateKey,
+                elapsedSeconds: 0,
+                startedAt: nil,
+                status: .paused
+            ) {
+                state.activeSession = replacementSession
+                appStateService.setCurrentSession(replacementSession)
+            } else {
+                state.activeSession = nil
+                appStateService.clearCurrentSession()
+            }
+
+            state.isRunning = false
+            state.restoreState = .idle
+            state.displayTime = "00:00"
+            onTimeChange?(state.displayTime)
+            onRunningStateChange?(false)
         }
 
         bumpDataRevision()

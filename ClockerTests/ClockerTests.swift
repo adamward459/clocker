@@ -456,7 +456,7 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(projectSessionService.loadSessions(for: project.id).filter { $0.dateKey == ClockService.todayString() }.count, 2)
     }
 
-    func testClockServiceMarksCurrentSessionDoneAndPausesClock() throws {
+    func testClockServiceMarksCurrentSessionDoneAndCreatesPausedReplacementSession() throws {
         let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
         let project = try XCTUnwrap(projectSessionService.createProject(named: "Design"))
         appStateService.setSelectedProject(project)
@@ -466,13 +466,18 @@ final class ClockerTests: XCTestCase {
         clockService.updateHistorySessionsStatus([startedSession], to: .done)
 
         let currentSession = try XCTUnwrap(clockService.activeSession)
-        XCTAssertEqual(currentSession.id, startedSession.id)
-        XCTAssertEqual(currentSession.status, .done)
-        XCTAssertEqual(clockService.displayTime, ClockService.formatElapsed(startedSession.elapsedSeconds))
+        XCTAssertNotEqual(currentSession.id, startedSession.id)
+        XCTAssertEqual(currentSession.status, .paused)
+        XCTAssertEqual(currentSession.elapsedSeconds, 0)
+        XCTAssertEqual(clockService.displayTime, "00:00")
         XCTAssertFalse(clockService.isRunning)
         XCTAssertEqual(appStateService.loadAppState()?.currentSession?.id, currentSession.id)
-        XCTAssertEqual(projectSessionService.loadSessions(for: project.id).filter { $0.dateKey == ClockService.todayString() }.count, 1)
-        XCTAssertEqual(startedSession.status, .done)
+        let sessions = projectSessionService.loadSessions(for: project.id).filter { $0.dateKey == ClockService.todayString() }
+        XCTAssertEqual(sessions.count, 2)
+        XCTAssertEqual(sessions.first(where: { $0.status == .done })?.id, startedSession.id)
+        XCTAssertEqual(sessions.first(where: { $0.status == .paused })?.id, currentSession.id)
+        XCTAssertTrue(sessions.contains(where: { $0.id == startedSession.id && $0.status == .done }))
+        XCTAssertTrue(sessions.contains(where: { $0.id == currentSession.id && $0.status == .paused }))
     }
 
     func testClockServiceMarksCurrentSessionUndoneAndPausesClock() throws {
