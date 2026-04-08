@@ -41,9 +41,10 @@ final class ClockStateRestorer {
         }
 
         let appState = appStateService.loadAppState()
-        let selectedProject = appState?.selectedProject ?? firstProject
+        var selectedProject = appState?.selectedProject ?? firstProject
         let trackingDate = ClockService.todayString()
         let session = restoredSession(for: selectedProject.id, today: trackingDate, appState: appState)
+
         let elapsedSeconds = session?.currentElapsedSeconds ?? 0
         let isRunning = session?.isRunning ?? false
         let restoreState: ClockService.RestoreState = session == nil ? .unavailable : ((isRunning || elapsedSeconds > 0) ? .restored : .idle)
@@ -67,15 +68,11 @@ final class ClockStateRestorer {
             return normalizedRestoredSession(currentSession)
         }
 
-        guard let latestSession = projectSessionService.loadLatestSession(for: projectID, dateKey: today) else {
-            return nil
+        if let latestProjectSession = latestRestorableSession(for: projectID, dateKey: today) {
+            return normalizedRestoredSession(latestProjectSession)
         }
-
-        guard latestSession.status != .undone else {
-            return nil
-        }
-
-        return normalizedRestoredSession(latestSession)
+        
+        return nil
     }
 
     private func normalizedRestoredSession(_ session: Session) -> Session {
@@ -86,5 +83,19 @@ final class ClockStateRestorer {
         session.pauseRunning()
         projectSessionService.saveSession(session)
         return session
+    }
+
+    private func latestRestorableSession(for projectID: UUID, dateKey: String) -> Session? {
+        projectSessionService
+            .loadSessions(for: projectID)
+            .filter { $0.dateKey == dateKey && $0.status != .done && $0.status != .undone }
+            .sorted { lhs, rhs in
+                if lhs.createdAt != rhs.createdAt {
+                    return lhs.createdAt < rhs.createdAt
+                }
+
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+            .last
     }
 }

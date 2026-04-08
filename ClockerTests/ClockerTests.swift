@@ -389,6 +389,45 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(persistedAppState.currentSession?.status, .paused)
     }
 
+    func testClockStateRestorerPrioritizesSelectedProjectOpenSessionOverOtherProjects() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let selectedProject = try XCTUnwrap(projectSessionService.createProject(named: "Design"))
+        let otherProject = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
+
+        let selectedSession = try XCTUnwrap(
+            projectSessionService.createSession(
+                for: selectedProject.id,
+                dateKey: ClockService.todayString(),
+                elapsedSeconds: 90,
+                startedAt: nil,
+                status: .paused,
+                createdAt: Date(timeIntervalSince1970: 60)
+            )
+        )
+        _ = try XCTUnwrap(
+            projectSessionService.createSession(
+                for: otherProject.id,
+                dateKey: ClockService.todayString(),
+                elapsedSeconds: 120,
+                startedAt: nil,
+                status: .done,
+                createdAt: Date(timeIntervalSince1970: 120)
+            )
+        )
+
+        appStateService.setSelectedProject(selectedProject)
+        let result = clockService.restoreTodayRecordIfAvailable()
+
+        XCTAssertEqual(result.selectedProject.id, selectedProject.id)
+        XCTAssertEqual(result.session?.id, selectedSession.id)
+        XCTAssertEqual(result.session?.status, .paused)
+        XCTAssertEqual(result.displayTime, ClockService.formatElapsed(90))
+        XCTAssertEqual(clockService.activeProjectID, selectedProject.id)
+        XCTAssertEqual(clockService.activeSession?.id, selectedSession.id)
+        XCTAssertEqual(appStateService.loadAppState()?.selectedProject?.id, selectedProject.id)
+        XCTAssertEqual(appStateService.loadAppState()?.currentSession?.id, selectedSession.id)
+    }
+
     func testClockStoreStartStopAndResetUpdateSwiftDataState() throws {
         let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
         let project = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
