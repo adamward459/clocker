@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Clocker is a lightweight macOS menu bar timer for tracking work by project with local, plain-text daily logs."
+    />
+    <meta name="theme-color" content="#17151f" />
+    <title>Clocker | macOS menu bar time tracking</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0f1117;
+        --bg-2: #171421;
+        --surface: rgba(20, 22, 30, 0.72);
+        --surface-strong: rgba(23, 26, 36, 0.92);
+        --text: #f5f1ea;
+        --muted: rgba(245, 241, 234, 0.72);
+        --line: rgba(255, 255, 255, 0.1);
+        --accent: #8d6cff;
+        --accent-2: #58d5ff;
+        --accent-3: #a6f36a;
+        --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+        --radius: 28px;
+        --radius-sm: 18px;
+        --max: 1160px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(900px circle at 10% 10%, rgba(88, 213, 255, 0.18), transparent 35%),
+          radial-gradient(700px circle at 85% 15%, rgba(141, 108, 255, 0.22), transparent 32%),
+          radial-gradient(700px circle at 65% 80%, rgba(166, 243, 106, 0.1), transparent 34%),
+          linear-gradient(180deg, var(--bg), var(--bg-2) 42%, #0c0d12 100%);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.5;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .page {
+        position: relative;
+        overflow: clip;
+      }
+
+      .page::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent 24%),
+          linear-gradient(225deg, rgba(255, 255, 255, 0.02), transparent 28%);
+        mix-blend-mode: screen;
+      }
+
+      .shell {
+        width: min(var(--max), calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        backdrop-filter: blur(20px);
+        background: linear-gradient(180deg, rgba(12, 13, 18, 0.86), rgba(12, 13, 18, 0.42));
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .topbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 0;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+      }
+
+      .brand img {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        box-shadow: 0 12px 30px rgba(117, 84, 255, 0.22);
+      }
+
+      .brand-copy {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.05;
+      }
+
+      .brand-copy span:last-child {
+        font-size: 0.85rem;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0.8rem 1rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        transition:
+          transform 160ms ease,
+          background 160ms ease,
+          border-color 160ms ease;
+      }
+
+      .pill:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      .pill.primary {
+        background: linear-gradient(135deg, rgba(141, 108, 255, 0.95), rgba(88, 213, 255, 0.85));
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 18px 32px rgba(89, 109, 255, 0.26);
+      }
+
+      .hero {
+        padding: clamp(42px, 7vw, 88px) 0 clamp(36px, 6vw, 72px);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+        gap: clamp(28px, 5vw, 76px);
+        align-items: center;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0.55rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+        font-size: 0.92rem;
+        margin-bottom: 22px;
+      }
+
+      .eyebrow-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--accent-3), var(--accent-2));
+        box-shadow: 0 0 0 6px rgba(166, 243, 106, 0.1);
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
+        font-size: clamp(3.2rem, 8vw, 6.8rem);
+        line-height: 0.93;
+        letter-spacing: -0.06em;
+        max-width: 8.5ch;
+      }
+
+      .lede {
+        max-width: 36rem;
+        margin: 24px 0 0;
+        font-size: clamp(1.05rem, 1.45vw, 1.28rem);
+        color: var(--muted);
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0.52rem 0.78rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+        color: rgba(245, 241, 234, 0.84);
+        font-size: 0.92rem;
+      }
+
+      .visual {
+        position: relative;
+        min-height: 620px;
+        display: grid;
+        place-items: center;
+      }
+
+      .visual::before {
+        content: "";
+        position: absolute;
+        inset: 12% 10% 10%;
+        background:
+          radial-gradient(circle at 30% 30%, rgba(88, 213, 255, 0.35), transparent 34%),
+          radial-gradient(circle at 70% 24%, rgba(141, 108, 255, 0.4), transparent 36%),
+          radial-gradient(circle at 50% 70%, rgba(166, 243, 106, 0.2), transparent 40%);
+        filter: blur(38px);
+        opacity: 0.8;
+      }
+
+      .screenshot {
+        position: relative;
+        width: min(100%, 540px);
+        padding: 18px;
+        border-radius: 36px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.04));
+        box-shadow: var(--shadow);
+        transform: rotate(-2deg);
+        transition: transform 220ms ease;
+      }
+
+      .screenshot:hover {
+        transform: rotate(0deg) translateY(-4px);
+      }
+
+      .screenshot img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 22px;
+      }
+
+      .screenshot-caption {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 4px 2px;
+        color: rgba(245, 241, 234, 0.7);
+        font-size: 0.92rem;
+      }
+
+      .section {
+        padding: clamp(26px, 5vw, 54px) 0;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: end;
+        margin-bottom: 22px;
+      }
+
+      .section-title {
+        margin: 0;
+        font-family: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
+        font-size: clamp(1.7rem, 2.4vw, 2.4rem);
+        letter-spacing: -0.04em;
+      }
+
+      .section-note {
+        margin: 0;
+        max-width: 34rem;
+        color: var(--muted);
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .feature {
+        grid-column: span 4;
+        padding: 22px;
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+      }
+
+      .feature strong {
+        display: block;
+        font-size: 1.08rem;
+        margin-bottom: 10px;
+        letter-spacing: -0.02em;
+      }
+
+      .feature p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .shot-card {
+        grid-column: span 6;
+        padding: 18px;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
+      }
+
+      .shot-card img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 18px;
+      }
+
+      .shot-card figcaption {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 14px 4px 2px;
+      }
+
+      .shot-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .shot-copy {
+        color: var(--muted);
+        font-size: 0.96rem;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 18px;
+        align-items: start;
+      }
+
+      .panel {
+        padding: 28px;
+        border-radius: var(--radius);
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+      }
+
+      .panel h3 {
+        margin: 0 0 14px;
+        font-size: 1.16rem;
+      }
+
+      .panel p,
+      .panel li {
+        color: var(--muted);
+      }
+
+      .panel ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .panel li + li {
+        margin-top: 10px;
+      }
+
+      .quote {
+        margin: 0;
+        font-family: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
+        font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+        letter-spacing: -0.05em;
+        line-height: 1.1;
+      }
+
+      .quote span {
+        color: var(--muted);
+      }
+
+      .footer-cta {
+        padding: clamp(22px, 5vw, 40px);
+        border-radius: 36px;
+        background:
+          radial-gradient(circle at top left, rgba(141, 108, 255, 0.24), transparent 34%),
+          radial-gradient(circle at top right, rgba(88, 213, 255, 0.22), transparent 28%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--shadow);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .footer-cta p {
+        margin: 8px 0 0;
+        color: var(--muted);
+      }
+
+      .footer-cta h2 {
+        margin: 0;
+        font-family: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
+        font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+        letter-spacing: -0.04em;
+      }
+
+      .fineprint {
+        padding: 28px 0 40px;
+        color: rgba(245, 241, 234, 0.5);
+        font-size: 0.92rem;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(12px);
+        animation: fadeUp 800ms ease forwards;
+      }
+
+      .reveal.delay-1 {
+        animation-delay: 120ms;
+      }
+
+      .reveal.delay-2 {
+        animation-delay: 220ms;
+      }
+
+      .reveal.delay-3 {
+        animation-delay: 320ms;
+      }
+
+      @keyframes fadeUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid,
+        .split {
+          grid-template-columns: 1fr;
+        }
+
+        .visual {
+          min-height: 0;
+          padding-top: 12px;
+        }
+
+        .feature {
+          grid-column: span 6;
+        }
+
+        .footer-cta,
+        .section-head {
+          flex-direction: column;
+          align-items: start;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .shell {
+          width: min(var(--max), calc(100% - 28px));
+        }
+
+        .topbar-inner {
+          flex-direction: column;
+          align-items: start;
+        }
+
+        .top-actions {
+          width: 100%;
+          flex-wrap: wrap;
+        }
+
+        .pill {
+          width: 100%;
+          justify-content: center;
+        }
+
+        h1 {
+          max-width: 10ch;
+        }
+
+        .feature {
+          grid-column: span 12;
+        }
+
+        .screenshot {
+          transform: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        .reveal,
+        .screenshot,
+        .pill {
+          animation: none;
+          transition: none;
+          transform: none;
+          opacity: 1;
+        }
+      }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <div class="shell topbar-inner">
+          <a class="brand" href="#top" aria-label="Clocker home">
+            <img src="images/logo.svg" alt="" />
+            <span class="brand-copy">
+              <span>Clocker</span>
+              <span>macOS menu bar timer</span>
+            </span>
+          </a>
+          <nav class="top-actions" aria-label="Primary">
+            <a class="pill" href="https://github.com/adamward459/clocker" target="_blank" rel="noreferrer">
+              Source
+            </a>
+            <a class="pill primary" href="https://github.com/adamward459/clocker/releases/latest" target="_blank" rel="noreferrer">
+              Download latest
+            </a>
+          </nav>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero">
+          <div class="shell hero-grid">
+            <div>
+              <div class="eyebrow reveal">
+                <span class="eyebrow-dot"></span>
+                Public GitHub Pages site for Clocker
+              </div>
+              <h1 class="reveal delay-1">Track work without leaving the menu bar.</h1>
+              <p class="lede reveal delay-2">
+                Clocker is a lightweight macOS timer for project-based time tracking. It stays out of the
+                way, restores today’s record on launch, and keeps your logs local and plain text.
+              </p>
+              <div class="cta-row reveal delay-3">
+                <a class="pill primary" href="https://github.com/adamward459/clocker/releases/latest" target="_blank" rel="noreferrer">
+                  Download latest release
+                </a>
+                <a class="pill" href="#features">See features</a>
+              </div>
+              <div class="meta-row reveal delay-3" aria-label="Product details">
+                <span class="meta-chip">Requires macOS 13+</span>
+                <span class="meta-chip">No account required</span>
+                <span class="meta-chip">GitHub Releases updates</span>
+              </div>
+            </div>
+
+            <div class="visual reveal delay-2">
+              <figure class="screenshot">
+                <img
+                  src="images/clocker-popover.jpg"
+                  alt="Clocker popover showing the timer, project switcher, and menu actions"
+                />
+                <figcaption class="screenshot-caption">
+                  <span>Latest popover UI</span>
+                  <span>Paused timer, New Session, Reset, and login/history actions</span>
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="features">
+          <div class="shell">
+            <div class="section-head reveal">
+              <h2 class="section-title">Built for fast, quiet tracking.</h2>
+              <p class="section-note">
+                Everything here is tuned for the app’s actual workflow: start, switch, restore, review, and
+                get out of the way.
+              </p>
+            </div>
+            <div class="feature-grid">
+              <article class="feature reveal delay-1">
+                <strong>Menu bar first</strong>
+                <p>Left-click to start or stop. Right-click or control-click to open the full popover when you need it.</p>
+              </article>
+              <article class="feature reveal delay-2">
+                <strong>Projects and history</strong>
+                <p>Track time per project, start a new session when needed, and browse weekly or monthly history views.</p>
+              </article>
+              <article class="feature reveal delay-3">
+                <strong>Local by default</strong>
+                <p>Clocker stores plain-text daily logs on your Mac, with no account, no cloud sync, and no hidden database.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="screenshots">
+          <div class="shell">
+            <div class="section-head reveal">
+              <h2 class="section-title">Latest screenshots.</h2>
+              <p class="section-note">
+                The current release shows a cleaner timer state and a history browser that switches between week and month views.
+              </p>
+            </div>
+            <div class="gallery-grid">
+              <figure class="shot-card reveal delay-1">
+                <img src="images/clocker-popover.jpg" alt="Clocker popover with paused timer, Start, New Session, and Reset buttons" />
+                <figcaption>
+                  <span class="shot-title">Popover</span>
+                  <span class="shot-copy">Paused timer, quick session controls, and the login toggle in the menu bar panel.</span>
+                </figcaption>
+              </figure>
+              <figure class="shot-card reveal delay-2">
+                <img src="images/clocker-history.jpg" alt="Clocker history screen showing week and month tabs with a weekly summary" />
+                <figcaption>
+                  <span class="shot-title">History</span>
+                  <span class="shot-copy">Week and month history views with project totals and session counts.</span>
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="shell split">
+            <article class="panel reveal">
+              <h3>What Clocker does</h3>
+              <p>
+                It gives you a live stopwatch in the menu bar, restores the current day on launch, and
+                keeps your tracked time visible without turning into a full-screen app.
+              </p>
+              <ul>
+                <li>Project-specific tracking with quick switching</li>
+                <li>Daily restoration from the most recent local record</li>
+                <li>Open-at-login support through macOS system APIs</li>
+                <li>Automatic updates from GitHub Releases for signed builds</li>
+              </ul>
+            </article>
+
+            <article class="panel reveal delay-1">
+              <p class="quote">
+                “A menu bar timer that feels like part of macOS, <span>not another dashboard.</span>”
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="shell footer-cta reveal">
+            <div>
+              <h2>Ready to try Clocker?</h2>
+              <p>Grab the latest release or browse the source whenever you want to inspect how it works.</p>
+            </div>
+            <div class="cta-row" style="margin: 0">
+              <a class="pill" href="https://github.com/adamward459/clocker" target="_blank" rel="noreferrer">
+                View source
+              </a>
+              <a class="pill primary" href="https://github.com/adamward459/clocker/releases/latest" target="_blank" rel="noreferrer">
+                Download latest
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <div class="shell fineprint">
+          © <span id="year"></span> Clocker. Built for the public GitHub Pages site.
+        </div>
+      </main>
+    </div>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>

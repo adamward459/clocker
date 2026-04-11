@@ -22,6 +22,12 @@ Built with SwiftUI and AppKit. Requires macOS 13+.
 
 The screenshot above shows the current popover layout, including the running timer, project selector, restore state, storage shortcut, history entry point, and login toggle.
 
+<p align="center">
+  <img src="docs/images/clocker-history.jpg" alt="Clocker history view showing week and month tabs" width="560">
+</p>
+
+The second screenshot shows the current history view, including the week/month toggle and weekly summary row.
+
 ## Features
 
 - **Menu bar timer** — displays a live `MM:SS` (or `H:MM:SS`) stopwatch directly in the macOS menu bar with play/pause icon
