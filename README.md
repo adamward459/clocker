@@ -28,6 +28,15 @@ The screenshot above shows the current popover layout, including the running tim
 
 The second screenshot shows the current history view, including the week/month toggle and weekly summary row.
 
+<p align="center">
+  <video controls playsinline preload="metadata" width="560" aria-label="Clocker demo video showing the timer in use">
+    <source src="docs/videos/demo.mp4" type="video/mp4">
+    Sorry, your browser does not support embedded video.
+  </video>
+</p>
+
+The demo video shows Clocker in action, including the menu bar timer, popover controls, and the app’s quiet flow.
+
 ## Features
 
 - **Menu bar timer** — displays a live `MM:SS` (or `H:MM:SS`) stopwatch directly in the macOS menu bar with play/pause icon

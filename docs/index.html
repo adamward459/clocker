@@ -354,6 +354,18 @@
         border-radius: 18px;
       }
 
+      .shot-card video {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 18px;
+        background: #000;
+      }
+
+      .shot-card.video-card {
+        grid-column: span 12;
+      }
+
       .shot-card figcaption {
         display: flex;
         flex-direction: column;
@@ -663,6 +675,16 @@
                 <figcaption>
                   <span class="shot-title">History</span>
                   <span class="shot-copy">Week and month history views with project totals and session counts.</span>
+                </figcaption>
+              </figure>
+              <figure class="shot-card video-card reveal delay-3">
+                <video controls playsinline preload="metadata" aria-label="Clocker demo video showing the timer in use">
+                  <source src="videos/demo.mp4" type="video/mp4" />
+                  Sorry, your browser does not support embedded video.
+                </video>
+                <figcaption>
+                  <span class="shot-title">Demo video</span>
+                  <span class="shot-copy">A quick walkthrough of the menu bar timer, popover controls, and session flow.</span>
                 </figcaption>
               </figure>
             </div>
