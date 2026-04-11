@@ -24,14 +24,11 @@ struct MainMenuPage: View {
                                 .font(.system(size: 8, weight: .semibold))
                         }
                         .foregroundStyle(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .fill(ClockerTheme.Colors.hoverFill)
-                        )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .tint(.secondary)
+                    .padding(.bottom, 2)
 
                     Text(clockService.displayTime)
                         .font(ClockerTheme.Fonts.clockDisplay)
@@ -63,8 +60,8 @@ struct MainMenuPage: View {
                         }
                     }
                 }
-                .padding(.top, 24)
-                .padding(.bottom, 16)
+                .padding(.top, 22)
+                .padding(.bottom, 14)
                 .frame(maxWidth: .infinity)
 
                 Divider()
@@ -299,6 +296,5 @@ struct UpdateToastView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
         )
-        .shadow(color: Color.black.opacity(0.12), radius: 12, y: 4)
     }
 }

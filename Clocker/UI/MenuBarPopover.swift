@@ -54,6 +54,7 @@ struct MenuBarPopover: View {
         .id(currentPage)
         .transition(navigationDirection.transition)
         .frame(width: currentPage == .history ? HistoryPage.preferredWidth : ClockerTheme.Size.popoverWidth)
+        .animation(ClockerTheme.Animation.pageSlide, value: currentPage)
     }
 
     private func navigate(to page: PopoverPage, direction: PageNavigationDirection) {

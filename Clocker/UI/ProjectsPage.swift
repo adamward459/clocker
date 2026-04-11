@@ -13,7 +13,6 @@ struct ProjectsPage: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Nav bar
             HStack {
                 Button(action: navigateBack) {
                     HStack(spacing: 3) {
@@ -34,12 +33,7 @@ struct ProjectsPage: View {
                 .onHover { backHovered = $0 }
                 .animation(.easeInOut(duration: 0.15), value: backHovered)
 
-                Spacer()
-
-                Text("Projects")
-                    .font(ClockerTheme.Fonts.navTitle)
-
-                Spacer()
+                Spacer(minLength: 0)
 
                 Button(isEditing ? "Done" : "Edit") {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -51,8 +45,12 @@ struct ProjectsPage: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.accentColor)
             }
+            .overlay {
+                Text("Projects")
+                    .font(ClockerTheme.Fonts.navTitle)
+            }
             .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
-            .padding(.vertical, 12)
+            .padding(.vertical, 11)
 
             Divider()
                 .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)

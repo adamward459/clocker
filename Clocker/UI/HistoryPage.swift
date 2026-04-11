@@ -103,25 +103,14 @@ struct HistoryPage: View {
                 .onHover { backHovered = $0 }
                 .animation(.easeInOut(duration: 0.15), value: backHovered)
 
-                Spacer()
-
+                Spacer(minLength: 0)
+            }
+            .overlay {
                 Text("History")
                     .font(ClockerTheme.Fonts.navTitle)
-
-                Spacer()
-
-                HStack(spacing: 3) {
-                    Image(systemName: "chevron.left")
-                        .font(ClockerTheme.Fonts.navBackIcon)
-                    Text("Back")
-                        .font(ClockerTheme.Fonts.navBack)
-                }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .hidden()
             }
             .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
-            .padding(.vertical, 12)
+            .padding(.vertical, 11)
 
             Divider()
                 .padding(.horizontal, ClockerTheme.Spacing.sectionPadding)
