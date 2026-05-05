@@ -554,6 +554,29 @@ final class ClockerTests: XCTestCase {
         XCTAssertNil(appStateService.loadAppState()?.currentSession)
     }
 
+    func testClockServiceDeletesNonActiveCurrentSessionAndClearsAppState() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let activeProject = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
+        let otherProject = try XCTUnwrap(projectSessionService.createProject(named: "Design"))
+        appStateService.setSelectedProject(activeProject)
+        _ = clockService.switchToProject(activeProject.id)
+
+        let currentSession = try XCTUnwrap(projectSessionService.createSession(
+            for: otherProject.id,
+            dateKey: ClockService.todayString(),
+            elapsedSeconds: 120,
+            startedAt: nil,
+            status: .paused
+        ))
+        appStateService.setCurrentSession(currentSession)
+
+        clockService.deleteSession(currentSession.id)
+
+        XCTAssertNil(appStateService.loadAppState()?.currentSession)
+        XCTAssertTrue(projectSessionService.loadSessions(for: otherProject.id).isEmpty)
+        XCTAssertEqual(clockService.activeProjectID, activeProject.id)
+    }
+
     func testAppUpdateServiceNormalizesGitHubReleaseTagsAndAssetNames() throws {
         let payload = """
         [

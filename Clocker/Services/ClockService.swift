@@ -299,6 +299,10 @@ final class ClockService: ObservableObject, @unchecked Sendable {
             _ = stop()
         }
 
+        if appStateService.loadAppState()?.currentSession?.id == session.id {
+            appStateService.clearCurrentSession()
+        }
+
         projectSessionService.deleteSession(sessionId)
 
         if shouldRefreshSelectedProject {

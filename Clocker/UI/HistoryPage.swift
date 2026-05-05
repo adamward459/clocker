@@ -463,6 +463,8 @@ struct HistoryPage: View {
 
     private func deletePendingSession() {
         guard let target = sessionPendingDeletion else { return }
+        sections = []
+        expandedEntryIDs.removeAll()
         clockService.deleteSession(target.id)
         sessionPendingDeletion = nil
     }
