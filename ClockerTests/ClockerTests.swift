@@ -538,6 +538,31 @@ final class ClockerTests: XCTestCase {
         XCTAssertEqual(startedSession.status, .undone)
     }
 
+    func testClockServiceDoesNotMarkEmptySessionDone() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let project = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
+        let emptySession = try XCTUnwrap(
+            projectSessionService.createSession(
+                for: project.id,
+                dateKey: ClockService.todayString(),
+                elapsedSeconds: 0,
+                startedAt: nil,
+                status: .paused
+            )
+        )
+
+        appStateService.setSelectedProject(project)
+        _ = clockService.switchToProject(project.id)
+
+        clockService.updateHistorySessionsStatus([emptySession], to: .done)
+
+        let persistedSession = try XCTUnwrap(projectSessionService.loadSession(id: emptySession.id))
+        XCTAssertEqual(persistedSession.status, .paused)
+        XCTAssertEqual(persistedSession.elapsedSeconds, 0)
+        XCTAssertEqual(clockService.activeSession?.id, emptySession.id)
+        XCTAssertEqual(appStateService.loadAppState()?.currentSession?.id, emptySession.id)
+    }
+
     func testClockServiceDeletesActiveSessionAndClearsState() throws {
         let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
         let project = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
@@ -546,6 +571,32 @@ final class ClockerTests: XCTestCase {
 
         let startedSession = try XCTUnwrap(clockService.start())
         clockService.deleteSession(startedSession.id)
+
+        XCTAssertNil(clockService.activeSession)
+        XCTAssertFalse(clockService.isRunning)
+        XCTAssertEqual(clockService.displayTime, "00:00")
+        XCTAssertTrue(projectSessionService.loadSessions(for: project.id).isEmpty)
+        XCTAssertNil(appStateService.loadAppState()?.currentSession)
+    }
+
+    func testClockServiceDeletesPausedCurrentSessionAndClearsState() throws {
+        let (clockService, appStateService, projectSessionService, _) = try makeClockStore()
+        let project = try XCTUnwrap(projectSessionService.createProject(named: "Ops"))
+        let pausedSession = try XCTUnwrap(
+            projectSessionService.createSession(
+                for: project.id,
+                dateKey: ClockService.todayString(),
+                elapsedSeconds: 0,
+                startedAt: nil,
+                status: .paused
+            )
+        )
+
+        appStateService.setSelectedProject(project)
+        _ = clockService.switchToProject(project.id)
+        appStateService.setCurrentSession(pausedSession)
+
+        clockService.deleteSession(pausedSession.id)
 
         XCTAssertNil(clockService.activeSession)
         XCTAssertFalse(clockService.isRunning)

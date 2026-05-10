@@ -233,6 +233,10 @@ final class ClockService: ObservableObject, @unchecked Sendable {
         let uniqueSessions = Array(Dictionary(grouping: sessions, by: \.id).values.compactMap { $0.first })
         guard !uniqueSessions.isEmpty else { return }
 
+        if status == .done, uniqueSessions.contains(where: { $0.currentElapsedSeconds == 0 }) {
+            return
+        }
+
         let activeSessionID = state.activeSession?.id
         let activeSessionWasUpdated = uniqueSessions.contains(where: { $0.id == activeSessionID })
         let shouldCreateReplacementSession = status == .done && activeSessionWasUpdated
@@ -295,12 +299,23 @@ final class ClockService: ObservableObject, @unchecked Sendable {
         guard let session = projectSessionService.loadSession(id: sessionId) else { return }
 
         let shouldRefreshSelectedProject = session.projectId == state.activeProjectID
+        let wasActiveSession = state.activeSession?.id == session.id
         if isRunning, state.activeSession?.id == session.id {
             _ = stop()
         }
 
         if appStateService.loadAppState()?.currentSession?.id == session.id {
             appStateService.clearCurrentSession()
+        }
+
+        if wasActiveSession {
+            state.activeSession = nil
+            state.isRunning = false
+            state.restoreState = .idle
+            state.displayTime = "00:00"
+            onTimeChange?(state.displayTime)
+            onRunningStateChange?(false)
+            timerDriver.stopMonitoring()
         }
 
         projectSessionService.deleteSession(sessionId)

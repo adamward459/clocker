@@ -141,9 +141,6 @@ struct HistoryPage: View {
         .onChange(of: clockService.dataRevision) { _, _ in
             if isVisible { loadEntries() }
         }
-        .onChange(of: clockService.displayTime) { _, _ in
-            if isVisible { loadEntries() }
-        }
         .confirmationDialog(
             "Delete session?",
             isPresented: Binding(
@@ -286,6 +283,7 @@ struct HistoryPage: View {
                         statusBadge(for: entry)
                     }
                     .buttonStyle(.plain)
+                    .disabled(!canToggleStatus(for: entry))
                     .accessibilityLabel(statusAccessibilityLabel(for: entry))
                 }
 
@@ -435,8 +433,17 @@ struct HistoryPage: View {
     }
 
     private func toggleStatus(for entry: HistoryEntry) {
+        guard canToggleStatus(for: entry) else { return }
         let nextStatus: Session.Status = aggregateStatus(for: entry.sessions) == .done ? .undone : .done
         clockService.updateHistorySessionsStatus(entry.sessions, to: nextStatus)
+    }
+
+    private func canToggleStatus(for entry: HistoryEntry) -> Bool {
+        if aggregateStatus(for: entry.sessions) == .done {
+            return true
+        }
+
+        return !entry.sessions.contains(where: { $0.currentElapsedSeconds == 0 })
     }
 
     private func canDeleteSession(_ entry: HistoryEntry) -> Bool {
