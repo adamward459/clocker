@@ -73,22 +73,20 @@ final class AppUpdateService: ObservableObject {
         notice = nil
         toast = nil
         isManualCheckInProgress = true
-        Task {
-            do {
-                try await updater.checkThrowing()
-                status = .installing
-                isManualCheckInProgress = false
-                updater.install()
-            } catch AUError.cancelled {
-                handleNoUpdateAvailable()
-            } catch where error.isCancelled {
-                handleNoUpdateAvailable()
-            } catch AppUpdater.Error.noValidUpdate {
-                handleNoUpdateAvailable()
-            } catch {
-                handleFailure(error)
+        updater.check(
+            success: { [weak self, weak updater] in
+                Task { @MainActor in
+                    self?.status = .installing
+                    self?.isManualCheckInProgress = false
+                }
+                updater?.install()
+            },
+            fail: { [weak self] error in
+                Task { @MainActor in
+                    self?.handleFailure(error)
+                }
             }
-        }
+        )
     }
 
     private func handleFailure(_ error: Error) {
